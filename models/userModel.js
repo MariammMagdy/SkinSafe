@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const userSchema = new Schema(
+const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -66,6 +66,31 @@ const userSchema = new Schema(
       type: String,
       default: "default_profile_image.jpg",
     },
+    doctors: [
+      {
+        id: { type: mongoose.Schema.Types.ObjectId },
+        name: {
+          type: String,
+        },
+        speciality: {
+          type: String,
+        },
+        rating: {
+          type: Number,
+          required: true,
+          min: 0,
+          max: 5
+        },
+        scheduleLink: {
+          type: String,
+          required: true
+        },
+        profileImage: {
+          type: String, // Store image URL or path
+          required: false
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
