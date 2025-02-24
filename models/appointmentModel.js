@@ -2,15 +2,17 @@ const mongoose = require("mongoose");
 
 const AppointmentSchema = new mongoose.Schema(
   {
-    doctor: String,
+    doctorName: String,
     status: String,
     date: String,
     specialization: String,
     location: String,
     image: String,
+    patientName: String,
+    contact: String,
+    comments: String,
   },
   { timestamps: true }
 );
-//or
 
 module.exports = mongoose.model("Appointment", AppointmentSchema);
