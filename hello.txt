@@ -1,4 +1,3 @@
 hello world
 
 
-DB_URI=mongodb+srv://ayadakhil:s5qeGIdrU54LPQ9t@cluster0.onf1c.mongodb.net/

@@ -7,6 +7,7 @@ dotenv.config({ path: "config.env" });
 const dbConnection = require("./config/database");
 
 // Routes
+const articleRoute = require("./routes/articleRoute");
 
 // Connect with db
 dbConnection();
@@ -23,6 +24,11 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Mount Routes
+app.use("/api/v1/articles", articleRoute);
+
+app.all("*", (req, res, next) => {
+  next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
+});
 
 const PORT = process.env.PORT || 6000;
 const server = app.listen(PORT, () => {

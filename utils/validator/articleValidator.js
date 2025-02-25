@@ -9,16 +9,12 @@ exports.getArticleValidator = [
 
 exports.createArticleValidator = [
   body("title").notEmpty().withMessage("Title of Article is required"),
-  body("description")
-    .notEmpty()
-    .withMessage("description  is required")
-    .isLength({ min: 10, max: 150 }),
   body("image").notEmpty().withMessage("Image is required"),
   body("content")
     .notEmpty()
     .withMessage("Contact is required")
-    .isLength({ min: 10, max: 500 }),
-  body("author").body().notEmpty().withMessage("author is required"),
+    .isLength({ min: 10, max: 5000 }),
+  body("author").notEmpty().withMessage("author is required"),
   validatorMiddleware,
 ];
 
