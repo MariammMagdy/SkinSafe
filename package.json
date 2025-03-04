@@ -2,7 +2,10 @@
   "name": "skinsafe",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "index.js",
+  "engines": {
+    "node":"20.x"
+  },
   "scripts": {
     "dev": "nodemon server.js"
   },
