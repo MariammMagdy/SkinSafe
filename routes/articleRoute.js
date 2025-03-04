@@ -1,17 +1,30 @@
-const express = require('express');
-const {getArticleValidator, createArticleValidator, updateArticleValidator, deleteArticleValidator } = require('../utlis/validator/articleValidator');
+const express = require("express");
+const {
+  getArticleValidator,
+  createArticleValidator,
+  updateArticleValidator,
+  deleteArticleValidator,
+} = require("../utils/validator/articleValidator");
 
-const {createArticle, getAllArticles, getArticleById, updateArticle, deleteArticle} = require('../services/articleServices');
+const {
+  createArticle,
+  getAllArticles,
+  getArticleById,
+  updateArticle,
+  deleteArticle,
+  uploadArticleImage,
+  resizeImage,
+} = require("../services/articleServices");
 
 const router = express.Router();
 router
-    .route('/')
-    .get(getAllArticles)
-    .post(createArticleValidator, createArticle);
+  .route("/")
+  .get(getAllArticles)
+  .post(uploadArticleImage, resizeImage, createArticleValidator, createArticle);
 router
-    .route('/:id')
-    .get(getArticleValidator, getArticleById)
-    .put(updateArticleValidator, updateArticle)
-    .delete(deleteArticleValidator, deleteArticle);
+  .route("/:id")
+  .get(getArticleValidator, getArticleById)
+  .put(uploadArticleImage, resizeImage, updateArticleValidator, updateArticle)
+  .delete(deleteArticleValidator, deleteArticle);
 
 module.exports = router;
