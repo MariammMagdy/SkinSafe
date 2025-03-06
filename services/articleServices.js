@@ -17,13 +17,13 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
   const tranformationOption ={
     width :500,
     height: 500,
-    crop: fill,
+    crop: "fill",
     gravity:"auto",
     format :"auto",
     quality:"auto",
   }
   const result = await cloudinary.uploader.upload(req.file.path,{
-    folder:"Articels",
+    folder:"Articels/new",
     transformation:tranformationOption
   })
   req.body.image = result.secure_url;
