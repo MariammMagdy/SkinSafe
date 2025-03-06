@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require("uuid");
 const asyncHandler = require("express-async-handler");
 const apiError = require("../utils/apiError");
 const articleModel = require("../models/articleModel");
+const cloudinary = require("../utils/cloudinary");
 const { uploadSingleImage } = require("../middleware/uploadImageMilddleware");
 
 // Upload single image
@@ -12,16 +13,23 @@ exports.uploadArticleImage = uploadSingleImage("image");
 // Image processing
 exports.resizeImage = asyncHandler(async (req, res, next) => {
   //image processing to best preofrmance (buffer need memory storage not disckstorage)
-  const filename = `article-${uuidv4()}-${Date.now()}.jpeg`;
-
-  await sharp(req.file.buffer) //sharp library image processing for nodejs   sharp is a promise need a awit
-    .resize(600, 600)
-    .toFormat("jpeg")
-    .jpeg({ quality: 95 }) //to decreae size
-    .toFile(`uploads/articles/${filename}`);
+ if(req.file){
+  const tranformationOption ={
+    width :500,
+    height: 500,
+    crop:FileList,
+    gravity:"auto",
+    format :"auto",
+    quality:"auto",
+  }
+  const result = await cloudinary.uploader.upload(req.file.path,{
+    folder:"Articels",
+    transformation:tranformationOption
+  })
+  req.body.image = result.secure_url;
+ }
 
   // Save image into our db
-  req.body.image = filename;
 
   next();
 });
