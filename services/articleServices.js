@@ -17,7 +17,7 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
   const tranformationOption ={
     width :500,
     height: 500,
-    crop:FileList,
+    crop: fill,
     gravity:"auto",
     format :"auto",
     quality:"auto",
