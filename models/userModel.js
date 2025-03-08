@@ -15,12 +15,6 @@ const userSchema = new mongoose.Schema(
     dateOfBirth: {
       type: Date,
       required: true,
-      /*validate: {
-       validator: function (value) {
-        return new Date() - value > 31557600000; // 31557600000 milliseconds = 1 year
-      },
-      message: "Date of birth must be before today's date",
-    }, */
     },
     gender: {
       type: String,
@@ -40,23 +34,11 @@ const userSchema = new mongoose.Schema(
       message: "Username must only contain alphanumeric characters",
       lowercase: true,
       trim: true,
-      /*  validate: {
-      validator: function (value) {
-        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value);
-      },
-      message: "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
-    }, */
     },
     email: {
       type: String,
       required: true,
       unique: true,
-      /* validate: {
-      validator: function (value) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-      },
-      message: "Please enter a valid email address",
-    }, */
     },
     password: {
       type: String,
@@ -79,15 +61,15 @@ const userSchema = new mongoose.Schema(
           type: Number,
           required: true,
           min: 0,
-          max: 5
+          max: 5,
         },
         scheduleLink: {
           type: String,
-          required: true
+          required: true,
         },
         profileImage: {
           type: String, // Store image URL or path
-          required: false
+          required: false,
         },
       },
     ],
