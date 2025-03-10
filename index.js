@@ -7,7 +7,6 @@ dotenv.config({ path: "config.env" });
 const dbConnection = require("./config/database");
 const ApiError = require("./utils/apiError");
 
-
 // Routes
 const articleRoute = require("./routes/articleRoute");
 
