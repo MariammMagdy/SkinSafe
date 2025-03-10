@@ -1,24 +1,18 @@
-const slugify = require("slugify");
-const { check, body } = require("express-validator");
+const { check } = require("express-validator");
 const validatorMiddleware = require("../../middleware/validatorMiddleware");
 
-exports.getDoctorValidator = [
-  check("id").isMongoId().withMessage("Invalid Doctor id format"),
+exports.createReportValidator = [
+  check('scannedImage').notEmpty().withMessage('The photo is required'),
   validatorMiddleware,
 ];
 
-exports.createDoctorValidator = [validatorMiddleware];
-
-exports.updateBrandValidator = [
-  check("id").isMongoId().withMessage("Invalid Doctor id format"),
-  body("doctorName").custom((val, { req }) => {
-    req.body.slug = slugify(val);
-    return true;
-  }),
+exports.getReportValidator = [
+  check('id').isMongoId().withMessage('Invalid ID formate'),
   validatorMiddleware,
 ];
 
-exports.deleteDoctorValidator = [
-  check("id").isMongoId().withMessage("Invalid Doctor id format"),
+exports.deleteReportValidator = [
+  check('id').isMongoId().withMessage('Invalid report id format'),
   validatorMiddleware,
 ];
+

@@ -12,15 +12,8 @@ exports.createReport = asyncHandler(async (req, res) => {
 
 // Get all reports for a specific user with pagination
 exports.getAllReports = asyncHandler(async (req, res) => {
-    const page = req.query.page * 1 || 1;
-    const limit = req.query.limit * 1 || 5;
-    const skip = (page - 1) * limit;
-
     const reports = await reportModel.find({ user: req.user.id })
         .select('createdAt updatedAt')
-        .skip(skip)
-        .limit(limit);
-
     res.status(200).json({ data: reports});
 });
 
@@ -44,5 +37,15 @@ exports.getReportById = asyncHandler(async (req, res, next) => {
     };
 
     res.status(200).json(formattedReport);
+});
+
+// Delete a report by ID
+exports.deleteReport = asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+    const report = await reportModel.findByIdAndDelete(id);
+    if (!report) {
+        return next (new ApiError('No report found for this id ${id}', 404));
+    }
+    res.status(204).send();
 });
 
