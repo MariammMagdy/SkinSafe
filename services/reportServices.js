@@ -25,16 +25,16 @@ exports.getAllReports = asyncHandler(async (req, res) => {
 });
 
 // Get a single report by ID with user details
-exports.getReportById = asyncHandler(async (req, res) => {
+exports.getReportById = asyncHandler(async (req, res, next) => {
     const report = await reportModel.findById(req.params.id)
         .populate({
             path: 'user',
             select: 'name email phone skinTone gender -_id'
         })
-        .select('createdAt updatedAt'); 
+        .select('createdAt updatedAt');                 
     
     if (!report) {          
-        return next(new ApiError('No sub category for this id', 404));
+        return next(new ApiError('No report for this id', 404));
     }
 
     const formattedReport = {
