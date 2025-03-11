@@ -1,18 +1,29 @@
-//const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-//const ReportSchema = new mongoose.Schema(
- // {
-   // name: String,
-   // phone: String,
-   // skinTone: String,
-   // gender: String,
-   // date: String,
-   // typeDetected: String,
-   // comments: String,
-   // image: String,
-   // previousReports: [{ time: String, date: String }],
-  //},
-  //{ timestamps: true }
-//);
+const reportSchema = new mongoose.Schema(
+    {
+        typeDetected: {
+            type: String,
+            required: true,
+        },
+        comments: {
+            type: String,
+            required: true,
+        },
+        slug: {
+            type: String,
+            lowercase: true,
+        },
+        scannedImage: {
+            type: String,
+        },
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User', 
+            required: [true, " The report must be belonging to a user"],
+        },
+    },
+    { timestamps: true}
+);
 
-//module.exports = mongoose.model("Report", ReportSchema);
+module.exports = mongoose.model("report", reportSchema);

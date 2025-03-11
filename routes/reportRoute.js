@@ -3,22 +3,22 @@ const {
     createReportValidator,
     getReportValidator,
     deleteReportValidator
-} = require("../utils/validator/articleValidator");
+} = require("../utils/validator/reportValidator");
 
 const {
     createReport,
     getAllReports,
     getReportById,
-    deleteReport
-} = require("../services/areportServices");
-
-const router = express.Router({ mergeParams: true });
+    deleteReport,
+    uploadReportImage,
+    resizeImage,
+} = require("../services/reportServices");
 
 router
     .route('/')
-    .get(getAllReports)
-    .post(createReportValidator, createReport);
-
+    .post(createReportValidator, uploadReportImage, resizeImage, createReport)
+    .get(getAllReports);
+    
 router
     .route('/:id')
     .get(getReportValidator, getReportById)

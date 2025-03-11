@@ -1,7 +1,38 @@
 const slugify = require('slugify');
+const sharp = require("sharp");
+const { v4: uuidv4 } = require("uuid");
 const asyncHandler = require('express-async-handler');
 const ApiError = require('../utils/ApiError');
 const reportModel = require('../models/reportModel');
+const cloudinary = require("../utils/cloudinary");
+const { uploadSingleImage } = require("../middleware/uploadImageMilddleware");
+
+// Upload single image
+exports.uploadReportImage = uploadSingleImage("image");
+
+// Image processing
+exports.resizeImage = asyncHandler(async (req, res, next) => {
+    //image processing to best preofrmance (buffer need memory storage not disckstorage)
+    if(req.file){
+        const tranformationOption ={
+            width :500,
+            height: 500,
+            crop: "fill",
+            gravity:"auto",
+            format :"auto",
+            quality:"auto",
+        }
+        const result = await cloudinary.uploader.upload(req.file.path,{
+            folder:"reports/scannedskin",
+            transformation:tranformationOption
+        })
+        req.body.scannedImage = result.secure_url;
+    }
+
+    // Save image into our db
+
+    next();
+});
 
 // Create a new report
 exports.createReport = asyncHandler(async (req, res) => {
@@ -13,7 +44,7 @@ exports.createReport = asyncHandler(async (req, res) => {
 // Get all reports for a specific user with pagination
 exports.getAllReports = asyncHandler(async (req, res) => {
     const reports = await reportModel.find({ user: req.user.id })
-        .select('createdAt updatedAt')
+        .select('createdAt updatedAt');
     res.status(200).json({ data: reports});
 });
 

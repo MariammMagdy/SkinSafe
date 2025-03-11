@@ -2,7 +2,15 @@ const { check } = require("express-validator");
 const validatorMiddleware = require("../../middleware/validatorMiddleware");
 
 exports.createReportValidator = [
-  check('scannedImage').notEmpty().withMessage('The photo is required'),
+  check('scannedImage')
+      .notEmpty()
+      .withMessage('The photo is required'),
+  check('typeDetected')
+      .notEmpty()
+      .withMessage('The type detected field is required'),
+  check('comment')
+      .notEmpty()
+      .withMessage('The comment field is required'),
   validatorMiddleware,
 ];
 
