@@ -1,35 +1,99 @@
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
+const CryptoJs = require("crypto-js");
 const jwt = require("jsonwebtoken");
 
-const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
-
+const asyncHandler = require("express-async-handler");
+const sendEmail = require("../utils/sendEmail");
 const createToken = require("../utils/createToken");
 
+const Verification = require("../models/codeModel");
 const User = require("../models/userModel");
+const { sanitizeUser } = require("../utils/sanitizeData");
 
 // @desc    Signup
 // @route   GET /api/auth/signup
 // @access  Public
 
 exports.signup = asyncHandler(async (req, res, next) => {
-  //1) Create user
-  const user = await User.create({
-    name: req.body.name,
-    phone: req.body.phone,
-    dateOfBirth: req.body.dateOfBirth,
-    gender: req.body.gender,
-    skinTone: req.body.skinTone,
-    userName: req.body.userName,
-    email: req.body.email,
-    password: req.body.password,
-    confirmPassword: req.body.confirmPassword,
+  const check = await Verification.findOne({ email: req.body.email });
+  if (check) {
+    await Verification.deleteOne({ _id: check._id });
+  }
+  const verificationCode = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
+  const expirationTime = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  const hashResetCode = crypto
+    .createHash("sha256")
+    .update(verificationCode)
+    .digest("hex");
+  // Send verification code to the user's email (as done before)
+  const message = `Hi ${req.body.fullName},\nWe received a request to verify your SkinSafe Account.\n${verificationCode}\nEnter this code to complete the verify.\nThanks for helping us keep your account secure.\nThe SkinSafe Team `;
+
+  //send Verification code to the user email
+  try {
+    await sendEmail({
+      email: req.body.email,
+      subject: "Email Verification Code (valid for 10 min)",
+      message,
+    });
+    // msh fahma dee
+    const { passwordConfirm, password, ...tempUserData } = req.body;
+    // تحقق إذا كانت كلمة المرور موجودة ثم عمل هاش لها
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      // تخزين كلمة المرور المجهزة (المشفرّة) في البيانات
+      tempUserData.password = hashedPassword;
+    } // Save the code and temp data in the database
+    const verification = await Verification.create({
+      email: req.body.Email,
+      code: hashResetCode,
+      expiresAt: new Date(expirationTime),
+      tempUserData: tempUserData,
+    });
+    // Generate and send token
+    const token = createToken(user._id);
+    res.status(200).json({
+      status: "success",
+      message: "Verification code sent to your email.",
+      token,
+    });
+  } catch (error) {
+    return next(new ApiError("There is an error in sending email", 500));
+  }
+});
+
+exports.verifyEmailUser = asyncHandler(async (req, res, next) => {
+  const check = await Verification.findById(req.code._id);
+  const { code } = req.body;
+  const hashResetCode = crypto.createHash("sha256").update(code).digest("hex");
+  const email = check.email;
+  const verificationRecord = await Verification.findOne({
+    email,
+    code: hashResetCode,
   });
-  //2) Generate and send token
+  if (!verificationRecord) {
+    return next(new ApiError("Invalid verification code", 400));
+  }
+  const date = Date.now();
+  // Create the user in the database
+  const user = await User.create({
+    ...verificationRecord.tempUserData, // نسخ جميع البيانات من tempStudentData
+    passwordChangeAt: date,
+  });
+  // Clear verification record
+  await Verification.deleteOne({ _id: verificationRecord._id });
+
   const token = createToken(user._id);
 
-  res.status(201).json({ data: user, token });
+  res.status(201).json({
+    status: "success",
+    data: sanitizeUser(user),
+    token,
+  });
 });
 
 // @desc    Login
@@ -43,13 +107,164 @@ exports.login = asyncHandler(async (req, res, next) => {
   }
   // 2) Generate and send token
   const token = createToken(user._id);
-
-  // Delete password from response
-  delete user._doc.password;
-  // send response to client server
-  res.status(201).json({ data: user, token });
+  return res.status(201).json({
+    data: sanitizeUser(user),
+    token,
+  });
 });
 
+exports.protect = asyncHandler(async (req, res, next) => {
+  //1)check if token exists, if exists get
+  let token;
+
+  if (req.headers.authorization) {
+    token = req.headers.authorization;
+  }
+  if (!token) {
+    return next(
+      new ApiError(
+        "you are not login, please login to get accsess this route",
+        401
+      )
+    );
+  }
+  //2) verify token (no change happens, expired token)
+  const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  //3) check if user exists
+  const currentUser = await User.findById(decoded.userId);
+
+  if (!currentUser) {
+    return next(
+      new ApiError("The user that belong to this token does no longer exist"),
+      401
+    );
+  }
+
+  //4)check the user is active or no
+  if (!currentUser.active) {
+    return next(
+      new ApiError("The user that belong to this token no active now"),
+      401
+    );
+  }
+  //5) check if user change his password after token created
+  if (currentUser.passwordChangeAt) {
+    const passChangedTimestamp = parseInt(
+      currentUser.passwordChangeAt / 1000,
+      10
+    );
+    //Password changed after token created (Error)
+    if (passChangedTimestamp > decoded.iat) {
+      return next(
+        new ApiError("Your password has changed recently, please login again"),
+        401
+      );
+    }
+  }
+  req.user = currentUser;
+  next();
+});
+
+exports.protectforget = asyncHandler(async (req, res, next) => {
+  //1)check if token exists, if exists get
+  let token;
+
+  if (req.headers.authorization) {
+    token = req.headers.authorization;
+  }
+  if (!token) {
+    return next(
+      new ApiError(
+        "you are not login, please login to get accsess this route",
+        401
+      )
+    );
+  }
+  //2) verify token (no change happens, expired token)
+  token = CryptoJs.AES.decrypt(token, process.env.HASH_PASS);
+  token = token.toString(CryptoJs.enc.Utf8);
+  const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  //3) check if user exists
+  const currentUser = await User.findById(decoded.userId);
+  // console.log(currentUser.passwordChangeAt.getTime());
+  if (!currentUser) {
+    return next(
+      new ApiError("The user that belong to this token does no longer exist"),
+      401
+    );
+  }
+
+  //4)check the user is active or no
+  if (!currentUser.active) {
+    return next(
+      new ApiError("The user that belong to this token no active now"),
+      401
+    );
+  }
+  //5) check if user change his password after token created
+  if (currentUser.passwordChangeAt) {
+    const passChangedTimestamp = parseInt(
+      currentUser.passwordChangeAt / 1000,
+      10
+    );
+    //Password changed after token created (Error)
+    if (passChangedTimestamp > decoded.iat) {
+      return next(
+        new ApiError("Your password has changed recently, please login again"),
+        401
+      );
+    }
+  }
+  req.user = currentUser;
+  next();
+});
+
+exports.protectCode = asyncHandler(async (req, res, next) => {
+  //1)check if token exists, if exists get
+  let token;
+
+  if (req.headers.authorization) {
+    token = req.headers.authorization;
+  }
+  if (!token) {
+    return next(
+      new ApiError(
+        "you are not login, please login to get accsess this route",
+        401
+      )
+    );
+  }
+  //2) verify token (no change happens, expired token)
+  const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  //3) check if user exists
+  const currentCode = await Verification.findById(decoded.userId);
+  // console.log(currentUser.passwordChangeAt.getTime());
+  if (!currentCode) {
+    return next(
+      new ApiError("The user that belong to this token does no longer exist"),
+      401
+    );
+  }
+
+  if (Date.now() > currentCode.expiresAt) {
+    return next(new ApiError("Verification code expired", 400));
+  }
+
+  req.code = currentCode;
+  next();
+});
+
+exports.allowedTo = (...roles) =>
+  asyncHandler(async (req, res, next) => {
+    //1) access roles
+    //2) access registered user (req.user.role)
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new ApiError("You are not allowed to access this this route", 403)
+      );
+    }
+    next();
+  });
 // @desc    Forgot password
 // @route   POST /api/v1/auth/forgotPassword
 // @access  Public
@@ -91,9 +306,13 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
     await user.save();
     return next(new ApiError("There is an error in sending email", 500));
   }
+  token = createToken(user._id);
+  token = CryptoJs.AES.encrypt(token, 10).toString();
+
   res.status(200).json({
     status: "success",
     message: "Reset code sent to your email",
+    token,
   });
 });
 
@@ -107,20 +326,22 @@ exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
     .createHash("sha256")
     .update(req.body.resetCode)
     .digest("hex");
-  const user = await User.findOne({
-    passwordResetCode: hashedResetCode,
-    passwordResetExpires: { $gt: Date.now() },
-  });
-  if (!user) {
-    return next(new ApiError("Invalid or expired reset code", 400));
+  const user = await User.findById(req.user._id);
+  if (
+    user.passwordResetCode != hashResetCode ||
+    user.passwordResetExpires <= Date.now()
+  ) {
+    return next(new ApiError("Reset code invalid or expired"), 401);
   }
   //2)reset code valid
   user.passwordResetVerified = true;
   await user.save();
+  const token = req.headers.authorization;
 
   res.status(200).json({
     status: "success",
     message: "Reset code verified",
+    token,
   });
 });
 
@@ -141,7 +362,16 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
     return next(new ApiError("Reset code not verified", 400));
   }
 
-  user.password = req.body.newPassword;
+  const { newPassword } = req.body;
+
+  // تحقق إذا كانت كلمة المرور موجودة ثم عمل هاش لها
+  if (newPassword) {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // تخزين كلمة المرور المجهزة (المشفرّة) في البيانات
+    user.password = hashedPassword;
+  }
+
   user.passwordResetCode = undefined;
   user.passwordResetExpires = undefined;
   user.passwordResetVerified = undefined;
@@ -151,58 +381,4 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
   // 3) if everything is ok, generate token
   const token = createToken(user._id);
   res.status(200).json({ token });
-});
-// @desc   make sure the user is logged in
-exports.protect = asyncHandler(async (req, res, next) => {
-  // 1) Check if token exist, if exist get
-  let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-  }
-  if (!token) {
-    return next(
-      new ApiError(
-        "You are not login, Please login to get access this route",
-        401
-      )
-    );
-  }
-
-  // 2) Verify token (no change happens, expired token)//decoded has 3 part 1.userId 2.iat (timestamp created) 3.exp (expired at)
-  const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); //If i write  invalid talken or expired return error it handle in error file
-
-  // 3) Check if user exists
-  const currentUser = await User.findById(decoded.userId); //check if user deleted or not active now with this taken
-  if (!currentUser || !currentUser.active) {
-    return next(
-      new ApiError(
-        "The user that belong to this token does no longer exist nor acticate",
-        401
-      )
-    );
-  }
-
-  // 4) Check if user change his password after token created
-  if (currentUser.passwordChangedAt) {
-    //1.convert date to timestamps
-    const passChangedTimestamp = parseInt(
-      currentUser.passwordChangedAt.getTime() / 1000,
-      10
-    );
-    // Password changed after token created (Error)
-    if (passChangedTimestamp > decoded.iat) {
-      return next(
-        new ApiError(
-          "User recently changed his password. please login again..",
-          401
-        )
-      );
-    }
-  }
-
-  req.user = currentUser;
-  next();
 });

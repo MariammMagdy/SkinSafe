@@ -30,15 +30,36 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
   next();
 });
 
-// @desc    Get list of users
-// @route   GET /api/users
-// @access  Private/Admin
-exports.getUsers = factory.getAll(User);
-
 // @desc    Get specific user by id
 // @route   GET /api/v1/users/:id
 // @access  Private/Admin
 exports.getUser = factory.getOne(User);
+
+// @desc    Get information of logged user
+// @route   GET /users/getMe
+// @access  Private/user
+
+exports.getLoggedUserData = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    return next(new ApiError(`No user found with id ${req.user.id}`, 404));
+  }
+
+  res.status(200).json({ data: sanitizeUser(user) });
+});
+
+// @desc    Get all users
+// @route   GET /users/all
+// @access  Private/user
+
+exports.getUsers = asyncHandler(async (req, res, next) => {
+  const users = await User.find();
+  if (!users.length) {
+    return next(new ApiError(`No users found`, 404));
+  }
+  res.status(200).json({ results: users.length, data: sanitizeUsers(users) });
+});
 
 // @desc    Create user
 // @route   POST  /api/v1/users
