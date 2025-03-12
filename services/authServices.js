@@ -1,10 +1,10 @@
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const CryptoJs = require("crypto-js");
+const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 
 const ApiError = require("../utils/apiError");
-const asyncHandler = require("express-async-handler");
 const sendEmail = require("../utils/sendEmail");
 const createToken = require("../utils/createToken");
 

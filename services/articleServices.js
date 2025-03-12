@@ -13,21 +13,21 @@ exports.uploadArticleImage = uploadSingleImage("image");
 // Image processing
 exports.resizeImage = asyncHandler(async (req, res, next) => {
   //image processing to best preofrmance (buffer need memory storage not disckstorage)
- if(req.file){
-  const tranformationOption ={
-    width :500,
-    height: 500,
-    crop: "fill",
-    gravity:"auto",
-    format :"auto",
-    quality:"auto",
+  if (req.file) {
+    const tranformationOption = {
+      width: 500,
+      height: 500,
+      crop: "fill",
+      gravity: "auto",
+      format: "auto",
+      quality: "auto",
+    };
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "Articles/new",
+      transformation: tranformationOption,
+    });
+    req.body.image = result.secure_url;
   }
-  const result = await cloudinary.uploader.upload(req.file.path,{
-    folder:"Articles/new",
-    transformation:tranformationOption
-  })
-  req.body.image = result.secure_url;
- }
 
   // Save image into our db
 
