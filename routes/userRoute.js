@@ -5,7 +5,7 @@ const {
   getAllUsers,
   updateUser,
   updateUserRole,
-  deactvateLoggedUser,
+  deactivateLoggedUser,
   reactivateUser,
   getDeactivatedUsers,
   deleteLoggedUser,
@@ -13,6 +13,8 @@ const {
   deleteUserAndAdmin,
   CreateAdmin,
   updateUserPassword,
+  resizeImage,
+  uploadUserImage,
 } = require("../services/userServices");
 
 const {
@@ -28,10 +30,15 @@ router.use(protect);
 
 router.get("/getMe", getLoggedUserData);
 
-router.put("/updateMe", updateUserValidator, updateUser);
+router.put(
+  "/updateMe",
+  updateUserValidator,
+  uploadUserImage,
+  resizeImage,
+  updateUser
+);
 
-router.put("/deactivateMe", deactvateLoggedUser);
-
+router.put("/deactivateMe", deactivateLoggedUser);
 router.delete("/deleteMe", deleteLoggedUser);
 router.put("/updateUserPassword", updateUserPassword);
 

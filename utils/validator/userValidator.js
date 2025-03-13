@@ -26,7 +26,7 @@ exports.updateUserValidator = [
         }
       })
     ),
-  ,
+
   check("dateOfBirth")
     .notEmpty()
     .withMessage("Date of birth required")

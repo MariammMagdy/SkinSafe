@@ -182,7 +182,7 @@ exports.updateUserRole = asyncHandler(async (req, res, next) => {
 // @route   PUT /users/deactvateMe
 // @access  Private/protect
 
-exports.deactvateLoggedUser = asyncHandler(async (req, res, next) => {
+exports.deactivateLoggedUser = asyncHandler(async (req, res, next) => {
   await User.findByIdAndUpdate(
     req.user._id,
     {
