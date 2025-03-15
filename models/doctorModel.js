@@ -8,7 +8,7 @@ const doctorSchema = new mongoose.Schema(
       minlength: 2,
       maxlength: 50,
     },
-    specialization: {
+    specialty: {
       type: String,
       required: true,
       minlength: 3,
@@ -20,29 +20,23 @@ const doctorSchema = new mongoose.Schema(
       min: 1,
       max: 100,
     },
-    department: {
-      type: String,
-      required: true,
-      minlength: 3,
-      maxlength: 50,
+    ratingsAverage: {
+      type: Number,
+      min: [1, "Rating must be more than or equal to 1.0"],
+      max: [5, "Rating must be less than or equal to 5.0"],
     },
-    ratingAverage: {
+    ratingsQuantity: {
       type: Number,
       default: 0,
-      min: 0,
-      max: 5,
-      /* validate: {
-      validator: function(v) {
-        return Number.isInteger(v);
-      },
-      message: "Rating average must be an integer value."
-    } */
     },
     about: {
       type: String,
       required: true,
       minlength: 10,
       maxlength: 5000,
+    },certificate: {
+      type: String,
+      required: true,
     },
     review: {
       type: String,
@@ -53,24 +47,9 @@ const doctorSchema = new mongoose.Schema(
     image: {
       type: String,
       required: true,
-      default: "default_profile_image.jpg",
-
-      /*
-    validate: {
-       validator: function(v) {
-        return /\.(jpg|jpeg|png|gif)$/i.test(v);
-      },
-      message: "Image must be a valid image file (jpg, jpeg, png, or gif)."
-    }, */
     },
-    appointments: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Appointment",
-      },
-    ],
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Doctor", userSchema);
+module.exports = mongoose.model("Doctor", doctorSchema);
