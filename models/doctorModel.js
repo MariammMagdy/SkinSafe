@@ -2,11 +2,17 @@ const mongoose = require("mongoose");
 
 const doctorSchema = new mongoose.Schema(
   {
-    name: {
+    firstName: {
       type: String,
       required: true,
       minlength: 2,
       maxlength: 50,
+    },
+    secondName: {
+      type: String,
+      required: true,
+      minlength: 2,
+      maxlength: 100,
     },
     specialty: {
       type: String,
@@ -33,12 +39,9 @@ const doctorSchema = new mongoose.Schema(
       type: String,
       required: true,
       minlength: 10,
-      maxlength: 5000,
-    },certificate: {
-      type: String,
-      required: true,
+      maxlength: 50000,
     },
-    review: {
+    certificate: {
       type: String,
       required: true,
       minlength: 10,
@@ -49,7 +52,14 @@ const doctorSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+doctorSchema.virtual("reviews", {
+  ref: "Review",
+  foreignField: "doctor",
+  localField: "_id",
+});
+
 
 module.exports = mongoose.model("Doctor", doctorSchema);

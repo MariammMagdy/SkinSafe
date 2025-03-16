@@ -19,8 +19,8 @@ const {
 const router = express.Router();
 router
   .route("/")
-  .get(getAllArticles)
-  .post(uploadArticleImage, resizeImage, createArticleValidator, createArticle);
+  .post(createArticleValidator, uploadArticleImage, resizeImage, createArticle)
+  .get(getAllArticles);
 router
   .route("/:id")
   .get(getArticleValidator, getArticleById)

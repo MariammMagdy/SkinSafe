@@ -12,14 +12,14 @@ exports.createArticleValidator = [
   body("image").notEmpty().withMessage("Image is required"),
   body("content")
     .notEmpty()
-    .withMessage("Contact is required")
-    .isLength({ min: 10, max: 5000 }),
+    .withMessage("Content is required")
+    .isLength({ min: 10, max: 5000 }).withMessage('Article content must be between 10 to 5000 characters'),
   body("author").notEmpty().withMessage("author is required"),
   validatorMiddleware,
 ];
 
 exports.updateArticleValidator = [
-  check("id").isMongoId().withMessage("Invalid Appointment id format"),
+  check("id").isMongoId().withMessage("Invalid Article id format"),
   body("content").custom((val, { req }) => {
     req.body.slug = slugify(val);
     return true;
@@ -28,6 +28,6 @@ exports.updateArticleValidator = [
 ];
 
 exports.deleteArticleValidator = [
-  check("id").isMongoId().withMessage("Invalid Appointment id format"),
+  check("id").isMongoId().withMessage("Invalid Article id format"),
   validatorMiddleware,
 ];
