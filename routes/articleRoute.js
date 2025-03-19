@@ -24,7 +24,7 @@ router
 router
   .route("/:id")
   .get(getArticleValidator, getArticleById)
-  .put(uploadArticleImage, resizeImage, updateArticleValidator, updateArticle)
+  .put(updateArticleValidator, uploadArticleImage, resizeImage, updateArticle)
   .delete(deleteArticleValidator, deleteArticle);
 
 module.exports = router;

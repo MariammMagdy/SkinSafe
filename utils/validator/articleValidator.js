@@ -8,13 +8,20 @@ exports.getArticleValidator = [
 ];
 
 exports.createArticleValidator = [
-  body("title").notEmpty().withMessage("Title of Article is required"),
-  body("image").notEmpty().withMessage("Image is required"),
-  body("content")
-    .notEmpty()
-    .withMessage("Content is required")
-    .isLength({ min: 10, max: 5000 }).withMessage('Article content must be between 10 to 5000 characters'),
-  body("author").notEmpty().withMessage("author is required"),
+  check("title")
+      .notEmpty()
+      .withMessage("Title of Article is required"),
+  check("image")
+      .notEmpty()
+      .withMessage("Image is required"),
+  check("content")
+      .notEmpty()
+      .withMessage("Content is required")
+      .isLength({ min: 10, max: 5000 })
+      .withMessage('Article content must be between 10 to 5000 characters'),
+  check("author")
+      .notEmpty()
+      .withMessage("author is required"),
   validatorMiddleware,
 ];
 

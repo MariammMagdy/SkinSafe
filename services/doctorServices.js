@@ -67,6 +67,16 @@ exports.updateDoctor = asyncHandler(async function (req, res, next) {
     if (req.body.about) updates.about = req.body.about;
     if (req.body.image) updates.image = req.body.image;
     if (req.body.certificate) updates.certificate = req.body.certificate;
+    if (day) {
+        day.forEach((newDay) => {
+            const existingDay = doctorModel.day.find((d) => d.type === newDay.type);
+            if (existingDay) {
+                existingDay.slots = newDay.slots;
+            } else {
+                doctorModel.day.push(newDay);
+            }
+        });
+    }
     
     const doctor = await doctorModel.findByIdAndUpdate(id, updates, { new: true });
     if (!doctor) {

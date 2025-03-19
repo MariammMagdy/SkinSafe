@@ -14,6 +14,8 @@ const {
     resizeImage,
 } = require("../services/reportServices");
 
+const router = express.Router();
+
 router
     .route('/')
     .post(createReportValidator, uploadReportImage, resizeImage, createReport)
