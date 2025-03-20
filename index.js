@@ -1,17 +1,23 @@
+const path = require("path");
+
 const express = require("express");
 const dotenv = require("dotenv");
-const ApiError = require("./utils/apiError");
-dotenv.config({ path: "config.env" });
 const morgan = require("morgan");
+
+dotenv.config({ path: "config.env" });
+const ApiError = require("./utils/apiError");
+const globalError = require("./middleware/errorMiddleware");
+const dbConnection = require("./config/database");
 const cors = require("cors");
 const compression = require("compression");
 const mountRoutes = require("./routes/index");
-const globalError = require("./middleware/errorMiddleware");
-const dbConnection = require("./config/database");
+
 // Routes
 const articleRoute = require("./routes/articleRoute");
-
-const path = require("path");
+const reviewRoute = require("./routes/reviewRoute");
+const doctorRoute = require("./routes/doctorRoute");
+const userRoute = require("./routes/userRoute");
+const authRoute = require("./routes/authRoute");
 
 // Connect with db
 dbConnection();
@@ -21,7 +27,6 @@ const app = express();
 
 // Middlewares
 app.use(express.json());
-
 // Enable other domains to access your application
 app.use(cors());
 app.options("*", cors());
@@ -63,7 +68,10 @@ deleteExpiredVerifications();
 //Mount Routes
 mountRoutes(app);
 app.use("/api/v1/articles", articleRoute);
-//Mount Routes
+app.use("/api/v1/reviews", reviewRoute);
+app.use("/api/v1/doctors", doctorRoute);
+app.use("/api/v1/users", userRoute);
+app.use("/api/v1/auth", authRoute);
 
 app.all("*", (req, res, next) => {
   next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));

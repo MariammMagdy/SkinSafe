@@ -78,11 +78,33 @@ const doctorSchema = new mongoose.Schema(
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
+doctorSchema.virtual(
+  "reviews",
+  {
+    ref: "Review",
+    foreignField: "doctor",
+    localField: "_id",
+  },
+  {
+    timestamps: true,
+    //to enable virtual populate
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
 doctorSchema.virtual("reviews", {
   ref: "Review",
   foreignField: "doctor",
   localField: "_id",
 });
 
+// Mongoose query middleware
+doctorSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "doctor",
+    select: "name -_id",
+  });
+  next();
+});
 
 module.exports = mongoose.model("Doctor", doctorSchema);
