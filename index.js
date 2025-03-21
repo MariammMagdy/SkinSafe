@@ -15,6 +15,7 @@ const mountRoutes = require("./routes/index");
 // Routes
 const articleRoute = require("./routes/articleRoute");
 const reviewRoute = require("./routes/reviewRoute");
+const reportRoute = require("./routes/reportRoute");
 const doctorRoute = require("./routes/doctorRoute");
 const userRoute = require("./routes/userRoute");
 const authRoute = require("./routes/authRoute");
@@ -69,6 +70,7 @@ deleteExpiredVerifications();
 mountRoutes(app);
 app.use("/api/v1/articles", articleRoute);
 app.use("/api/v1/reviews", reviewRoute);
+app.use("/api/v1/reports", reportRoute);
 app.use("/api/v1/doctors", doctorRoute);
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/auth", authRoute);
