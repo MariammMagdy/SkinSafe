@@ -17,6 +17,7 @@ const articleRoute = require("./routes/articleRoute");
 const reviewRoute = require("./routes/reviewRoute");
 const reportRoute = require("./routes/reportRoute");
 const doctorRoute = require("./routes/doctorRoute");
+const notificationRoute = require("./routes/notificationRoute");
 const userRoute = require("./routes/userRoute");
 const authRoute = require("./routes/authRoute");
 
@@ -72,6 +73,7 @@ app.use("/api/v1/articles", articleRoute);
 app.use("/api/v1/reviews", reviewRoute);
 app.use("/api/v1/reports", reportRoute);
 app.use("/api/v1/doctors", doctorRoute);
+app.use("/api/v1/notifications", notificationRoute);
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/auth", authRoute);
 
