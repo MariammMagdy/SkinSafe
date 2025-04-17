@@ -21,16 +21,18 @@ const reviewsRoute = require("./reviewRoute");
 
 const router = express.Router();
 
-//POST /doctors/fyuyfgyf/reviews
-//GET /doctors/fyuyfgyf/reviews
-//GET /doctors/fyuyfgyf/reviews/ttftfjj
 router.use("/:doctorId/reviews", reviewsRoute);
+
+// ---------------- PUBLIC ROUTES ----------------
+router.route("/").get(getAllDoctors);
+
+// ---------------- PROTECTED ROUTES ----------------
+
+//router.use(authService.protect);
 
 router
   .route("/")
-  .get(getAllDoctors)
   .post(
-    authService.protect,
     authService.allowedTo("admin", "manager"),
     uploadDoctorImage,
     resizeImage,
@@ -42,18 +44,12 @@ router
   .route("/:id")
   .get(getDoctorValidator, getDoctorById)
   .put(
-    authService.protect,
     authService.allowedTo("admin", "manager"),
     uploadDoctorImage,
     resizeImage,
     updateDoctorValidator,
     updateDoctor
   )
-  .delete(
-    authService.protect,
-    authService.allowedTo("admin"),
-    deleteDoctorValidator,
-    deleteDoctor
-  );
+  .delete(authService.allowedTo("admin"), deleteDoctorValidator, deleteDoctor);
 
 module.exports = router;

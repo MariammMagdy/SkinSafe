@@ -53,16 +53,14 @@ exports.signupValidator = [
       }
       return true;
     }),
-  check("Phone")
-    .notEmpty()
-    .withMessage("Phone Confirmation required")
-    .isMobilePhone("ar-EG") // يسمح فقط بالأرقام المصرية
-    .withMessage(
+  check("phoneNumber").not().isEmpty().withMessage("Phone is required"),
+  //.isMobilePhone("ar-EG") // يسمح فقط بالأرقام المصرية
+  /*.withMessage(
       "Invalid phone number. Only Egyptian phone numbers are accepted."
-    ),
-  check("passwordConfirm")
+    )*/
+  /* check("passwordConfirm")
     .notEmpty()
-    .withMessage("Password confirmation required"),
+    .withMessage("Password confirmation required"), */
 
   check("profileImg").optional(),
 

@@ -22,7 +22,7 @@ const router = express.Router();
 //user endpoints
 
 router.post("/signup", signupValidator, signup);
-router.post("/verify-email", protectCode, verifyEmailUser);
+//router.post("/verify-email", protectCode, verifyEmailUser);
 router.post("/login", loginValidator, login);
 router.post("/forgotPassword", forgotPassword);
 router.post("/verifyResetCode", protectforget, verifyPassResetCode);

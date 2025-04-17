@@ -15,57 +15,33 @@ const { sanitizeUser } = require("../utils/sanitizeData");
 // @desc    Signup
 // @route   GET /api/auth/signup
 // @access  Public
-
 exports.signup = asyncHandler(async (req, res, next) => {
+  // حذف كود تحقق قديم لو موجود
   const check = await Verification.findOne({ email: req.body.email });
   if (check) {
     await Verification.deleteOne({ _id: check._id });
   }
-  const verificationCode = Math.floor(
-    100000 + Math.random() * 900000
-  ).toString();
-  const expirationTime = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-  const hashResetCode = crypto
-    .createHash("sha256")
-    .update(verificationCode)
-    .digest("hex");
-  // Send verification code to the user's email (as done before)
-  const message = `Hi ${req.body.fullName},\nWe received a request to verify your SkinSafe Account.\n${verificationCode}\nEnter this code to complete the verify.\nThanks for helping us keep your account secure.\nThe SkinSafe Team `;
+  // هاش للباسورد
+  const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-  //send Verification code to the user email
-  try {
-    await sendEmail({
-      email: req.body.email,
-      subject: "Email Verification Code (valid for 10 min)",
-      message,
-    });
-    // msh fahma dee
-    const { passwordConfirm, password, ...tempUserData } = req.body;
-    // تحقق إذا كانت كلمة المرور موجودة ثم عمل هاش لها
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      // تخزين كلمة المرور المجهزة (المشفرّة) في البيانات
-      tempUserData.password = hashedPassword;
-    } // Save the code and temp data in the database
-    const verification = await Verification.create({
-      email: req.body.Email,
-      code: hashResetCode,
-      expiresAt: new Date(expirationTime),
-      tempUserData: tempUserData,
-    });
-    // Generate and send token
-    const token = createToken(user._id);
-    res.status(200).json({
-      status: "success",
-      message: "Verification code sent to your email.",
-      token,
-    });
-  } catch (error) {
-    return next(new ApiError("There is an error in sending email", 500));
-  }
+  // إنشاء مستخدم جديد
+  const user = await User.create({
+    name: req.body.name,
+    userName: req.body.userName,
+    email: req.body.email,
+    phoneNumber: req.body.phoneNumber,
+    dateOfBirth: req.body.dateOfBirth,
+    gender: req.body.gender,
+    skinTone: req.body.skinTone,
+    password: hashedPassword,
+  });
+  return res.status(201).json({
+    data: sanitizeUser(user),
+    message: "success",
+  });
 });
-
+/*
 exports.verifyEmailUser = asyncHandler(async (req, res, next) => {
   const check = await Verification.findById(req.code._id);
   const { code } = req.body;
@@ -95,7 +71,7 @@ exports.verifyEmailUser = asyncHandler(async (req, res, next) => {
     token,
   });
 });
-
+*/
 // @desc    Login
 // @route   GET /api/auth/login
 // @access  Public
@@ -114,57 +90,45 @@ exports.login = asyncHandler(async (req, res, next) => {
 });
 
 exports.protect = asyncHandler(async (req, res, next) => {
-  //1)check if token exists, if exists get
+  // 1) التحقق من وجود التوكن
   let token;
-
-  if (req.headers.authorization) {
-    token = req.headers.authorization;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
   }
+
   if (!token) {
-    return next(
-      new ApiError(
-        "you are not login, please login to get accsess this route",
-        401
-      )
-    );
+    return next(new ApiError("You are not logged in! Please log in.", 401));
   }
-  //2) verify token (no change happens, expired token)
-  const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-  //3) check if user exists
-  const currentUser = await User.findById(decoded.userId);
 
+  // 2) التحقق من صحة التوكن
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  // 3) التحقق من وجود المستخدم اللي في التوكن
+  const currentUser = await User.findById(decoded.userId);
   if (!currentUser) {
     return next(
-      new ApiError("The user that belong to this token does no longer exist"),
-      401
+      new ApiError("The user belonging to this token no longer exists.", 401)
     );
   }
 
-  //4)check the user is active or no
-  if (!currentUser.active) {
-    return next(
-      new ApiError("The user that belong to this token no active now"),
-      401
-    );
-  }
-  //5) check if user change his password after token created
-  if (currentUser.passwordChangeAt) {
-    const passChangedTimestamp = parseInt(
-      currentUser.passwordChangeAt / 1000,
-      10
-    );
-    //Password changed after token created (Error)
-    if (passChangedTimestamp > decoded.iat) {
-      return next(
-        new ApiError("Your password has changed recently, please login again"),
-        401
-      );
-    }
-  }
-  req.user = currentUser;
+  req.user = currentUser; // بنحط بيانات المستخدم في req
   next();
 });
 
+// التحقق من صلاحيات المستخدم
+exports.allowedTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new ApiError("You are not allowed to access this route", 403)
+      );
+    }
+    next();
+  };
+};
 exports.protectforget = asyncHandler(async (req, res, next) => {
   //1)check if token exists, if exists get
   let token;
@@ -254,17 +218,6 @@ exports.protectCode = asyncHandler(async (req, res, next) => {
   next();
 });
 
-exports.allowedTo = (...roles) =>
-  asyncHandler(async (req, res, next) => {
-    //1) access roles
-    //2) access registered user (req.user.role)
-    if (!roles.includes(req.user.role)) {
-      return next(
-        new ApiError("You are not allowed to access this this route", 403)
-      );
-    }
-    next();
-  });
 // @desc    Forgot password
 // @route   POST /api/v1/auth/forgotPassword
 // @access  Public
