@@ -1,5 +1,7 @@
 const slugify = require("slugify");
 const sharp = require("sharp");
+const multer = require("multer");
+
 const { v4: uuidv4 } = require("uuid");
 const asyncHandler = require("express-async-handler");
 const apiError = require("../utils/apiError");
