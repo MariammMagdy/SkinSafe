@@ -1,20 +1,50 @@
+const path = require("path");
 const slugify = require("slugify");
 const sharp = require("sharp");
 const { v4: uuidv4 } = require("uuid");
 const asyncHandler = require("express-async-handler");
-const ApiError = require("../utils/ApiError");
+//const ApiError = require("../utils/ApiError");
 const reportModel = require("../models/reportModel");
 const cloudinary = require("../utils/cloudinary");
-const { uploadSingleImage } = require("../middleware/uploadImageMilddleware");
+const multer = require("multer");
 
-// Upload single image
-exports.uploadReportImage = uploadSingleImage("image");
+// =======================
+// Multer Config
+// =======================
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
 
-// Image processing
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const fileTypes = /jpeg|jpg|png/;
+    const extname = fileTypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
+    const mimetype = fileTypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error("Only .png, .jpg and .jpeg format allowed!"));
+    }
+  },
+});
+
+exports.uploadReportImage = upload.single("scannedImage");
+
+// =======================
+// Resize + Upload to Cloudinary
+// =======================
 exports.resizeImage = asyncHandler(async (req, res, next) => {
-  //image processing to best preofrmance (buffer need memory storage not disckstorage)
   if (req.file) {
-    const tranformationOption = {
+    const transformationOption = {
       width: 500,
       height: 500,
       crop: "fill",
@@ -22,63 +52,51 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
       format: "auto",
       quality: "auto",
     };
+
     const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "reports/scannedskin",
-      transformation: tranformationOption,
+      folder: "reports/new",
+      transformation: transformationOption,
     });
+
+    // ✅ تم التعديل هنا
     req.body.scannedImage = result.secure_url;
   }
-
-  // Save image into our db
-
   next();
 });
 
+// =======================
 // Create a new report
+// =======================
 exports.createReport = asyncHandler(async (req, res) => {
   req.body.slug = slugify(req.body.typeDetected);
   const report = await reportModel.create(req.body);
   res.status(201).json({ data: report });
 });
 
-// Get all reports for a specific user with pagination
+// =======================
+// Get all reports for a specific user
+// =======================
+
 exports.getAllReports = asyncHandler(async (req, res) => {
-  const reports = await reportModel;
-  // byde error bsbb dool!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  //.find({ user: req.user.id })
-  //.select("createdAt updatedAt");
-  res.status(200).json({ data: reports });
+  const reports = await reportModel.find();
+  res.status(200).json(reports);
 });
 
-// Get a single report by ID with user details
-exports.getReportById = asyncHandler(async (req, res, next) => {
-  const report = await reportModel
-    .findById(req.params.id)
-    .populate({
-      path: "user",
-      select: "name email phone skinTone gender -_id",
-    })
-    .select("createdAt updatedAt");
+// =======================
+// Get a single report by ID
+// =======================
 
-  if (!report) {
-    return next(new ApiError("No report for this id", 404));
-  }
-
-  const formattedReport = {
-    ...report.toObject(),
-    createdAt: report.createdAt.toLocaleDateString("en-GB"),
-    updatedAt: report.updatedAt.toLocaleDateString("en-GB"),
-  };
-
-  res.status(200).json(formattedReport);
+exports.getReportById = asyncHandler(async (req, res) => {
+  const report = await reportModel.findById(req.params.id);
+  if (!report) return res.status(404).json({ error: "Report not found" });
+  res.status(200).json(report);
 });
 
+// =======================
 // Delete a report by ID
-exports.deleteReport = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-  const report = await reportModel.findByIdAndDelete(id);
-  if (!report) {
-    return next(new ApiError("No report found for this id ${id}", 404));
-  }
-  res.status(204).send();
+// =======================
+exports.deleteReport = asyncHandler(async (req, res) => {
+  const report = await reportModel.findByIdAndDelete(req.params.id);
+  if (!report) return res.status(404).json({ error: "Report not found" });
+  res.status(200).json({ message: "Report deleted" });
 });

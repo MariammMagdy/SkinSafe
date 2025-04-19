@@ -19,7 +19,7 @@ const router = express.Router();
 router
   .route("/")
   .post(uploadReportImage, resizeImage, createReportValidator, createReport);
-router.get("/:id", getAllReports);
+router.get("/user/:id", getAllReports);
 
 router
   .route("/:id")
