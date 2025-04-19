@@ -17,10 +17,12 @@ const {
 } = require("../services/articleServices");
 
 const router = express.Router();
+
 router
   .route("/")
-  .post(createArticleValidator, uploadArticleImage, resizeImage, createArticle)
+  .post(uploadArticleImage, resizeImage, createArticleValidator, createArticle)
   .get(getAllArticles);
+
 router
   .route("/:id")
   .get(getArticleValidator, getArticleById)

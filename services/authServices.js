@@ -147,7 +147,7 @@ exports.protectforget = asyncHandler(async (req, res, next) => {
   //2) verify token (no change happens, expired token)
   token = CryptoJs.AES.decrypt(token, process.env.HASH_PASS);
   token = token.toString(CryptoJs.enc.Utf8);
-  const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
   //3) check if user exists
   const currentUser = await User.findById(decoded.userId);
   // console.log(currentUser.passwordChangeAt.getTime());
@@ -199,7 +199,7 @@ exports.protectCode = asyncHandler(async (req, res, next) => {
     );
   }
   //2) verify token (no change happens, expired token)
-  const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
   //3) check if user exists
   const currentCode = await Verification.findById(decoded.userId);
   // console.log(currentUser.passwordChangeAt.getTime());

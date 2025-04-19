@@ -97,9 +97,31 @@ exports.getAllAdmins = asyncHandler(async (req, res, next) => {
 // @access  Private/Admin
 exports.createUser = (User) =>
   asyncHandler(async (req, res) => {
-    const newDoc = await User.create(req.body);
-    res.status(201).json({ data: newDoc });
+    const {
+      name,
+      userName,
+      email,
+      phoneNumber,
+      dateOfBirth,
+      gender,
+      skinTone,
+      password,
+    } = req.body;
+
+    const newUser = await User.create({
+      name,
+      userName,
+      email,
+      phoneNumber,
+      dateOfBirth,
+      gender,
+      skinTone,
+      password,
+    });
+    console.log(newUser);
+    res.status(201).json({ data: newUser });
   });
+
 // @desc    Update specific user
 // @route   PUT /api/v1/users/:id
 // @access  Private/Admin
@@ -136,12 +158,13 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
     req.params.id,
     {
       name: req.body.name,
-      slug: req.body.slug,
-      phone: req.body.phone,
+      userName: req.body.userName,
+      phoneNumber: req.body.phoneNumber,
       dateOfBirth: req.body.dateOfBirth,
       gender: req.body.gender,
       skinTone: req.body.skinTone,
-      profileImg: req.body.profileImg,
+      email: req.body.email,
+      password: req.body.password,
     },
     {
       new: true,
@@ -226,14 +249,16 @@ exports.getDeactivatedUsers = asyncHandler(async (req, res, next) => {
 // @access  Private/protect
 
 exports.deleteLoggedUser = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user._id);
+  const user = await User.findByIdAndDelete(req.user._id);
 
-  if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
-    return next(new ApiError("Incorrect password", 401));
+  if (!user) {
+    return next(new ApiError("No user found", 404));
   }
-  await User.findByIdAndDelete(req.user._id);
 
-  res.status(204).json({ msg: "Deleted" });
+  return res.status(200).json({
+    status: "success",
+    msg: `${user.userName} deleted successfully.`,
+  });
 });
 
 exports.updateUserPassword = asyncHandler(async (req, res, next) => {

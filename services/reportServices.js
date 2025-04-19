@@ -43,9 +43,10 @@ exports.createReport = asyncHandler(async (req, res) => {
 
 // Get all reports for a specific user with pagination
 exports.getAllReports = asyncHandler(async (req, res) => {
-  const reports = await reportModel
-    .find({ user: req.user.id })
-    .select("createdAt updatedAt");
+  const reports = await reportModel;
+  // byde error bsbb dool!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  //.find({ user: req.user.id })
+  //.select("createdAt updatedAt");
   res.status(200).json({ data: reports });
 });
 
