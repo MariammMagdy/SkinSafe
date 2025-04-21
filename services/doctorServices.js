@@ -4,6 +4,7 @@ const sharp = require("sharp");
 const { v4: uuidv4 } = require("uuid");
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
+const DoctorAvailability = require("../models/DoctorAvailability");
 const doctorModel = require("../models/doctorModel");
 const cloudinary = require("../utils/cloudinary");
 const multer = require("multer");
@@ -12,29 +13,29 @@ const multer = require("multer");
 // Multer Config
 // =======================
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${uuidv4()}${path.extname(file.originalname)}`);
-  },
+    destination: (req, file, cb) => {
+        cb(null, "uploads/");
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${uuidv4()}${path.extname(file.originalname)}`);
+    },
 });
 
 const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-  fileFilter: (req, file, cb) => {
-    const fileTypes = /jpeg|jpg|png/;
-    const extname = fileTypes.test(
-      path.extname(file.originalname).toLowerCase()
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+        const fileTypes = /jpeg|jpg|png/;
+        const extname = fileTypes.test(
+        path.extname(file.originalname).toLowerCase()
     );
     const mimetype = fileTypes.test(file.mimetype);
     if (mimetype && extname) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only .png, .jpg and .jpeg formats are allowed!"));
+        cb(null, true);
+        } else {
+        cb(new Error("Only .png, .jpg and .jpeg formats are allowed!"));
     }
-  },
+    },
 });
 
 exports.uploadDoctorImage = upload.single("doctorImage");
@@ -43,103 +44,123 @@ exports.uploadDoctorImage = upload.single("doctorImage");
 // Resize + Upload to Cloudinary
 // =======================
 exports.resizeImage = asyncHandler(async (req, res, next) => {
-  if (req.file) {
+    if (req.file) {
     const transformationOption = {
-      width: 500,
-      height: 500,
-      crop: "fill",
-      gravity: "auto",
-      format: "auto",
-      quality: "auto",
+        width: 500,
+        height: 500,
+        crop: "fill",
+        gravity: "auto",
+        format: "auto",
+        quality: "auto",
     };
 
     const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "doctors/new",
-      transformation: transformationOption,
+        folder: "doctors/new",
+        transformation: transformationOption,
     });
 
     req.body.doctorImage = result.secure_url;
-  }
-  next();
+    }
+    next();
 });
 
 // =======================
 // Create Doctor
 // =======================
 exports.createDoctor = asyncHandler(async (req, res) => {
-  req.body.slug = slugify(`${req.body.firstName}-${req.body.secondName}`, {
-    lower: true,
-  });
-  const doctor = await doctorModel.create(req.body);
-  res.status(201).json({ data: doctor });
+    req.body.slug = slugify(`${req.body.firstName}-${req.body.secondName}`, {
+        lower: true,
+    });
+    const doctor = await doctorModel.create(req.body);
+    res.status(201).json({ data: doctor });
 });
 
 // =======================
 // Get All Doctors
 // =======================
 exports.getAllDoctors = asyncHandler(async (req, res) => {
-  const doctors = await doctorModel.find().sort({ ratingAverage: -1 });
-  res.status(200).json({ data: doctors });
+    const doctors = await doctorModel.find().sort({ ratingAverage: -1 });
+    res.status(200).json({ data: doctors });
 });
 
 // =======================
 // Get Doctor By ID
 // =======================
 exports.getDoctorById = asyncHandler(async (req, res, next) => {
-  const doctor = await doctorModel.findById(req.params.id);
-  if (!doctor) {
-    return next(new ApiError(`No Doctor for this id ${req.params.id}`, 404));
-  }
-  res.status(200).json({ data: doctor });
+    const doctor = await doctorModel.findById(req.params.id);
+    if (!doctor) {
+        return next(new ApiError(`No Doctor for this id ${req.params.id}`, 404));
+    }
+    res.status(200).json({ data: doctor });
 });
 
 // =======================
 // Update Doctor
 // =======================
 exports.updateDoctor = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-  const updates = {};
+    const { id } = req.params;
+    const updates = {};
 
-  if (req.body.experience) updates.experience = req.body.experience;
-  if (req.body.about) updates.about = req.body.about;
-  if (req.body.image) updates.image = req.body.image;
-  if (req.body.certificate) updates.certificate = req.body.certificate;
-  if (req.body.doctorImage) updates.doctorImage = req.body.doctorImage;
+    if (req.body.experience) updates.experience = req.body.experience;
+    if (req.body.about) updates.about = req.body.about;
+    if (req.body.image) updates.image = req.body.image;
+    if (req.body.certificate) updates.certificate = req.body.certificate;
+    if (req.body.doctorImage) updates.doctorImage = req.body.doctorImage;
 
-  const doctor = await doctorModel.findById(id);
-  if (!doctor) {
-    return next(new ApiError(`No doctor found for this id ${id}`, 404));
-  }
+    const doctor = await doctorModel.findById(id);
+    if (!doctor) {
+        return next(new ApiError(`No doctor found for this id ${id}`, 404));
+    }
 
-  // If "day" is provided in the body, update it
-  if (req.body.day) {
-    req.body.day.forEach((newDay) => {
-      const existingDay = doctor.day.find((d) => d.type === newDay.type);
-      if (existingDay) {
-        existingDay.slots = newDay.slots;
-      } else {
-        doctor.day.push(newDay);
-      }
-    });
-  }
+    // ✅ Update availability if provided
+    if (req.body.availability) {
+        const sluggedAvailability = req.body.availability.map((entry) => ({
+        ...entry,
+        slug: slugify(entry.day, { lower: true }),
+        }));
 
-  Object.assign(doctor, updates);
-  await doctor.save();
+        await DoctorAvailability.findOneAndUpdate(
+        { doctor: id },
+        { availability: sluggedAvailability },
+        { new: true, runValidators: true, upsert: true }
+        );
+    }
 
-  res.status(200).json({ data: doctor });
+    Object.assign(doctor, updates);
+    await doctor.save();
+
+    res.status(200).json({ data: doctor });
 });
+
+  /*// If "day" is provided in the body, update it
+    if (req.body.day) {
+        req.body.day.forEach((newDay) => {
+            const existingDay = doctor.day.find((d) => d.type === newDay.type);
+            if (existingDay) {
+            existingDay.slots = newDay.slots;
+            } else {
+            doctor.day.push(newDay);
+            }
+        });
+    }
+
+    Object.assign(doctor, updates);
+    await doctor.save();
+
+    res.status(200).json({ data: doctor });
+});*/
 
 // =======================
 // Delete Doctor
 // =======================
 exports.deleteDoctor = asyncHandler(async (req, res, next) => {
-  const doctor = await doctorModel.findByIdAndDelete(req.params.id);
-  if (!doctor) {
-    return next(
-      new ApiError(`No Doctor found for this id ${req.params.id}`, 404)
-    );
-  }
-  res.status(200).json({ message: "Doctor is deleted" });
+    const doctor = await doctorModel.findByIdAndDelete(req.params.id);
+    if (!doctor) {
+        return next(
+        new ApiError(`No Doctor found for this id ${req.params.id}`, 404)
+        );
+    }
+    res.status(200).json({ message: "Doctor is deleted" });
 });
 
 /*

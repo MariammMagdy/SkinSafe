@@ -80,6 +80,22 @@ doctorSchema.pre(/^find/, function (next) {
   next();
 });
 
+// Define virtual field for availability
+
+doctorSchema.virtual("availability", {
+  ref: "DoctorAvailability",
+  foreignField: "doctor",
+  localField: "_id",
+});
+
+doctorSchema.pre(/^find/, function (next) {
+  this.populate("availability"); // <-- ضيفي دي مع باقي الـ populate زي reviews
+  next();
+});
+
+
+
+
 module.exports = mongoose.model("Doctor", doctorSchema);
 
 /*

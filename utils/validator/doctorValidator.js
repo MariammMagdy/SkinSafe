@@ -1,5 +1,5 @@
 const slugify = require("slugify");
-const { check } = require("express-validator");
+const { check, body} = require("express-validator");
 const validatorMiddleware = require("../../middleware/validatorMiddleware");
 
 exports.createDoctorValidator = [
@@ -78,6 +78,27 @@ exports.updateDoctorValidator = [
     .withMessage("Too short certificate section for a doctor")
     .isLength({ max: 5000 })
     .withMessage("Too long certificate section for a doctor"),
+
+  // ✅ Validate availability if provided
+  body("availability")
+    .optional()
+    .isArray()
+    .withMessage("Availability must be an array"),
+
+  body("availability.*.day")
+    .optional()
+    .notEmpty()
+    .withMessage("Day is required"),
+
+  body("availability.*.timeSlots")
+    .optional()
+    .isArray()
+    .withMessage("timeSlots must be an array"),
+
+  body("availability.*.timeSlots.*")
+    .optional()
+    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    .withMessage("Each timeSlot must be in HH:MM format"),
   validatorMiddleware,
 ];
 
