@@ -25,7 +25,10 @@ exports.signup = asyncHandler(async (req, res, next) => {
   // هاش للباسورد
   const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-  // إنشاء مستخدم جديد
+  // إعداد fcmToken كمصفوفة
+  const fcmTokens = req.body.fcmToken ? [req.body.fcmToken] : [];
+
+  // إنشاء مستخدم جديد مع fcmToken Array
   const user = await User.create({
     name: req.body.name,
     userName: req.body.userName,
@@ -35,7 +38,9 @@ exports.signup = asyncHandler(async (req, res, next) => {
     gender: req.body.gender,
     skinTone: req.body.skinTone,
     password: hashedPassword,
+    fcmToken: fcmTokens, // ← إضافة المصفوفة
   });
+
   return res.status(201).json({
     data: sanitizeUser(user),
     message: "success",
@@ -76,16 +81,33 @@ exports.verifyEmailUser = asyncHandler(async (req, res, next) => {
 // @route   GET /api/auth/login
 // @access  Public
 exports.login = asyncHandler(async (req, res, next) => {
+  // البحث عن المستخدم
   const user = await User.findOne({ email: req.body.email });
-  // 1) check if password and email in the body (validation)
+
+  // التحقق من الإيميل والباسورد
   if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
     return next(new ApiError("Incorrect email or password", 401));
   }
-  // 2) Generate and send token
+
+  // تحديث fcmToken لو موجود في الطلب
+  if (req.body.fcmToken) {
+    await User.updateOne(
+      { _id: user._id },
+      { $addToSet: { fcmToken: req.body.fcmToken } } // إضافة بدون تكرار
+    );
+  }
+
+  // إنشاء التوكن
   const token = createToken(user._id);
-  return res.status(201).json({
-    data: sanitizeUser(user),
+
+  // تحديث نسخة user بعد تعديل fcmToken
+  const updatedUser = await User.findById(user._id);
+
+  // إرجاع البيانات
+  return res.status(200).json({
+    data: sanitizeUser(updatedUser),
     token,
+    message: "success",
   });
 });
 
