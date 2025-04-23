@@ -50,7 +50,7 @@ class NotificationService {
     }));
 
     try {
-      const response = await admin.messaging().sendEach(messages);
+      const response = await admin.messaging().sendMulticast(messages);
       return response;
     } catch (err) {
       throw err;

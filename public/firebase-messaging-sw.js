@@ -1,6 +1,3 @@
-// script for firebase and firebase messaging
-importScripts("");
-
 importScripts("https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js");
 importScripts(
   "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js"
@@ -17,10 +14,17 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-
-//retrieve fire base messaging
 const messaging = firebase.messaging();
 
-messaging.onBackgroungMessage(function (payload) {
+// ✅ التصحيح هنا
+messaging.onBackgroundMessage(function (payload) {
   console.log("Received background message", payload);
+
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: "/logo.png", // غيره حسب شعار التطبيق
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
 });
