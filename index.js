@@ -3,15 +3,13 @@ const path = require("path");
 const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
-
+const cors = require("cors");
+const cron = require("node-cron");
+const compression = require("compression");
 dotenv.config({ path: "config.env" });
 const ApiError = require("./utils/apiError");
 const globalError = require("./middleware/errorMiddleware");
 const dbConnection = require("./config/database");
-const cors = require("cors");
-const cron = require("node-cron");
-
-const compression = require("compression");
 const mountRoutes = require("./routes/index");
 
 // Routes
