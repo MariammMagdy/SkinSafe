@@ -9,6 +9,8 @@ const ApiError = require("./utils/apiError");
 const globalError = require("./middleware/errorMiddleware");
 const dbConnection = require("./config/database");
 const cors = require("cors");
+const cron = require("node-cron");
+
 const compression = require("compression");
 const mountRoutes = require("./routes/index");
 
@@ -17,9 +19,13 @@ const articleRoute = require("./routes/articleRoute");
 const reviewRoute = require("./routes/reviewRoute");
 const reportRoute = require("./routes/reportRoute");
 const doctorRoute = require("./routes/doctorRoute");
+const firebaseRoute = require("./routes/firebaseRoute");
 const notificationRoute = require("./routes/notificationRoute");
 const userRoute = require("./routes/userRoute");
 const authRoute = require("./routes/authRoute");
+const {
+  sendEveryMinuteNotification,
+} = require("./controllers/firebaseController");
 
 // Connect with db
 dbConnection();
@@ -32,6 +38,13 @@ app.use(express.json());
 // Enable other domains to access your application
 app.use(cors());
 app.options("*", cors());
+
+/*
+cron.schedule("* * * * * ", async () => {
+  console.log("sending every minute");
+  await sendEveryMinuteNotification();
+});
+*/
 
 // compress all responses
 app.use(compression());
@@ -73,6 +86,7 @@ app.use("/api/v1/articles", articleRoute);
 app.use("/api/v1/reviews", reviewRoute);
 app.use("/api/v1/reports", reportRoute);
 app.use("/api/v1/doctors", doctorRoute);
+app.use("/api/v1/firebase", firebaseRoute);
 app.use("/api/v1/notifications", notificationRoute);
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/auth", authRoute);
