@@ -8,7 +8,7 @@ const {
     createAvailability,
     getAvailabilityByDoctor,
     updateAvailability,
-} = require("../services/doctorAvailabilityService");
+} = require("../services/doctorAvailabilityServices");
 
 const router = express.Router();
 

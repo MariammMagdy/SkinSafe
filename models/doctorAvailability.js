@@ -48,4 +48,4 @@ doctorAvailabilitySchema.pre("save", function (next) {
   next();
 });
 
-module.exports = mongoose.model("DoctorAvailability", doctorAvailabilitySchema);
+module.exports = mongoose.models.DoctorAvailability || mongoose.model("DoctorAvailability", doctorAvailabilitySchema);

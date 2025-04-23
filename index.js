@@ -23,6 +23,9 @@ const firebaseRoute = require("./routes/firebaseRoute");
 const notificationRoute = require("./routes/notificationRoute");
 const userRoute = require("./routes/userRoute");
 const authRoute = require("./routes/authRoute");
+const doctorAvailabilityRoute = require("./routes/doctorAvailabilityRoute");
+const appointmentRoute = require("./routes/appointmentRoute");
+
 const {
   sendEveryMinuteNotification,
 } = require("./controllers/firebaseController");
@@ -90,6 +93,9 @@ app.use("/api/v1/firebase", firebaseRoute);
 app.use("/api/v1/notifications", notificationRoute);
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/auth", authRoute);
+app.use("/api/v1/availability", doctorAvailabilityRoute);
+app.use("/api/v1/appointments", appointmentRoute);
+
 
 app.all("*", (req, res, next) => {
   next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
