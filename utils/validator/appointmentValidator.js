@@ -1,7 +1,7 @@
-const { check } = require("express-validator");
+const { check, body } = require("express-validator");
 const validatorMiddleware = require("../../middleware/validatorMiddleware");
-const DoctorAvailability = require("../../models/DoctorAvailability");
-const Appointment = require("../../models/Appointment");
+const DoctorAvailability = require("../../models/doctorAvailability");
+const Appointment = require("../../models/appointmentModel");
 const mongoose = require("mongoose");
 
 

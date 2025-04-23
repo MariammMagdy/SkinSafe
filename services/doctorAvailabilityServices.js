@@ -1,4 +1,4 @@
-const DoctorAvailability = require("../models/DoctorAvailability");
+const DoctorAvailability = require("../models/doctorAvailability");
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
 const slugify = require("slugify");

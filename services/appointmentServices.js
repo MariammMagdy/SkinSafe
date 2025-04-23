@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const Appointment = require("../models/Appointment");
+const Appointment = require("../models/appointmentModel");
 const ApiError = require("../utils/ApiError");
 
 // 📌 Create Appointment
