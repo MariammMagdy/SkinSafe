@@ -111,3 +111,6 @@ process.on("unhandledRejection", (err) => {
     process.exit(1);
   });
 });
+
+console.log('KEY:', process.env.OPENWEATHER_API_KEY);
+
