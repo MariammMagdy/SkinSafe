@@ -26,3 +26,17 @@ exports.sanitizeUsers = function (users) {
     //role: user.role,
   }));
 };
+
+exports.sanitizeReview = function (review) {
+  return {
+    _id: review._id,
+    review: review.review,
+    rating: review.rating,
+    nurse: review.nurse,
+    user: review.user,
+  };
+};
+
+exports.sanitizeReviewsList = function (reviews) {
+  return reviews.map(exports.sanitizeReview);
+};

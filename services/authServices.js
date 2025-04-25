@@ -112,7 +112,6 @@ exports.login = asyncHandler(async (req, res, next) => {
 });
 
 exports.protect = asyncHandler(async (req, res, next) => {
-  // 1) التحقق من وجود التوكن
   let token;
   if (
     req.headers.authorization &&
@@ -125,18 +124,17 @@ exports.protect = asyncHandler(async (req, res, next) => {
     return next(new ApiError("You are not logged in! Please log in.", 401));
   }
 
-  // 2) التحقق من صحة التوكن
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-  // 3) التحقق من وجود المستخدم اللي في التوكن
-  const currentUser = await User.findById(decoded.userId);
+  const currentUser = await User.findById(decoded.userId).select("+role");
   if (!currentUser) {
     return next(
       new ApiError("The user belonging to this token no longer exists.", 401)
     );
   }
+  console.log("User from DB:", currentUser);
 
-  req.user = currentUser; // بنحط بيانات المستخدم في req
+  req.user = currentUser;
   next();
 });
 
@@ -144,6 +142,7 @@ exports.protect = asyncHandler(async (req, res, next) => {
 exports.allowedTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
+      console.log("Role trying to access route:", req.user.role);
       return next(
         new ApiError("You are not allowed to access this route", 403)
       );

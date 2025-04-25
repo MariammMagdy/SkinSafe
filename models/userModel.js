@@ -40,7 +40,12 @@ const userSchema = new mongoose.Schema(
       required: [true, "Password is required"],
       minlength: 6,
     },
-    role: String,
+    role: {
+      type: String,
+      enum: ["user", "doctor", "admin"],
+      default: "user",
+      select: false, // لو فيه هذا السطر لازم تعمل .select("+role")
+    },
     fcmToken: {
       type: [String],
       default: [],

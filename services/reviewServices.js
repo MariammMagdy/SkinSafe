@@ -1,8 +1,11 @@
+const asyncHandler = require("express-async-handler");
+
+const ApiError = require("../utils/apiError");
+const ApiFeatures = require("../utils/apiFeatures");
+
+const Doctor = require("../models/doctorModel");
 const factory = require("./handlersFactory");
 const Review = require("../models/reviewModel");
-const Doctor = require("../models/doctorModel");
-const User = require("../models/userModel");
-const ApiError = require("../utils/apiError");
 
 //Nested route
 //GET /api/v1/products/productId/reviews
@@ -25,7 +28,7 @@ exports.getReview = factory.getOne(Review);
 //Nested Route
 exports.setDoctorIdAndUserIdToBody = (req, res, next) => {
   // Nested route (Create)
-  if (!req.body.doctor) req.body.doctor = req.params.doctorId;
+  if (!req.body.doctor) req.body.product = req.params.doctorId;
   if (!req.body.user) req.body.user = req.user._Id;
   next();
 };
@@ -33,8 +36,36 @@ exports.setDoctorIdAndUserIdToBody = (req, res, next) => {
 // @desc    Create review
 // @route   POST  /api/v1/reviews
 // @access  Private
-exports.createReview = factory.createOne(Review);
+exports.createReview = asyncHandler(async (req, res, next) => {
+  if (!req.user || !req.user._id) {
+    return next(new ApiError("User ID is required", 400));
+  }
 
+  req.body.user = req.user._id;
+
+  if (!req.body.doctor) {
+    return next(new ApiError("Doctor ID is required", 400));
+  }
+
+  const doctorExists = await Doctor.findById(req.body.doctor);
+  if (!doctorExists) {
+    return next(new ApiError("Doctor not found", 404));
+  }
+
+  const lastReview = await Review.findOne({
+    user: req.user._id,
+    doctor: req.body.doctor,
+  });
+
+  if (lastReview) {
+    return next(
+      new ApiError("You already posted a review for this doctor", 400)
+    );
+  }
+
+  const review = await Review.create(req.body);
+  res.status(201).json({ data: sanitizeReview(review) });
+});
 // @desc    Update specific review
 // @route   PUT /api/v1/reviews/:id
 // @access  Private
@@ -44,48 +75,3 @@ exports.updateReview = factory.updateOne(Review);
 // @route   DELETE /api/v1/reviews/:id
 // @access  Private
 exports.deleteReview = factory.deleteOne(Review);
-
-/*
-exports.createFilterObj = (req, res, next) => {
-  let filterObject = {};
-  if (req.params.doctorId) filterObject = { doctor: req.params.doctorId };
-  req.filterObj = filterObject;
-  next();
-};
-
-exports.setDoctorIdAndUserIdToBody = (req, res, next) => {
-  if (!req.body.doctor) req.body.doctor = req.params.doctorId;
-  if (!req.body.user) {
-    if (!req.user) {
-      return next(new ApiError("User not found. Please login first.", 401));
-    }
-    req.body.user = req.user._id;
-  }
-  next();
-};
-
-exports.getReviews = factory.getAll(Review);
-exports.getReview = factory.getOne(Review);
-
-exports.createReview = async (doctorId, userId, rating, comment) => {
-  // التحقق إذا كان المستخدم قد كتب تقييمًا للطبيب
-  const existingReview = await Review.findOne({ doctorId, userId });
-
-  if (existingReview) {
-    throw new Error("لقد قمت بكتابة تقييم لهذا الطبيب من قبل");
-  }
-
-  // إنشاء تقييم جديد
-  const review = new Review({
-    doctorId,
-    userId,
-    rating,
-    comment,
-  });
-
-  return await review.save();
-};
-
-exports.updateReview = factory.updateOne(Review);
-exports.deleteReview = factory.deleteOne(Review);
-*/

@@ -1,61 +1,78 @@
-/*
-const Notification = require("../models/notificationModel");
-// إضافة إشعار جديد
-async function createNotification(data) {
-  const notification = new Notification(data);
-  return await notification.save();
-}
+const asyncHandler = require("express-async-handler");
+const ApiError = require("../utils/apiError");
+const ApiFeatures = require("../utils/apiFeatures");
 
-// جلب كل الإشعارات مرتبة من الأحدث للأقدم
-async function getAllNotifications() {
-  return await Notification.find().sort({ createdAt: -1 });
-}
+exports.deleteOne = (Model) =>
+  asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+    const document = await Model.findByIdAndDelete(id);
 
-// حذف إشعار (اختياري)
-async function deleteNotification(id) {
-  return await Notification.findByIdAndDelete(id);
-}
-
-module.exports = {
-  createNotification,
-  getAllNotifications,
-  deleteNotification,
-};
-*/
-const admin = require("../utils/firebase");
-class NotificationService {
-  static async sendNotification(deviceToken, title, body) {
-    const message = {
-      notification: {
-        title,
-        body,
-      },
-      token: deviceToken,
-    };
-    try {
-      const response = await admin.messaging().send(message);
-      return response;
-    } catch (err) {
-      throw err;
+    if (!document) {
+      return next(new ApiError(`No document for this id ${id}`, 404));
     }
-  }
+    //trigger "remove" event when update document
+    document.save();
+    res.status(204).send();
+  });
 
-  static async sendMultipleNotification(deviceTokens, title, body) {
-    const messages = deviceTokens.map((token) => ({
-      notification: {
-        title,
-        body,
-      },
-      token: token,
-    }));
+exports.updateOne = (Model) =>
+  asyncHandler(async (req, res, next) => {
+    const document = await Model.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
-    try {
-      const response = await admin.messaging().sendMulticast(messages);
-      return response;
-    } catch (err) {
-      throw err;
+    if (!document) {
+      return next(
+        new ApiError(`No document for this id ${req.params.id}`, 404)
+      );
     }
-  }
-}
+    //trigger "save" event when update document
+    document.save();
+    res.status(200).json({ data: document });
+  });
 
-module.exports = NotificationService;
+exports.createOne = (Model) =>
+  asyncHandler(async (req, res) => {
+    const newDoc = await Model.create(req.body);
+    res.status(201).json({ data: newDoc });
+  });
+
+exports.getOne = (Model, populationOpt) =>
+  asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+    const query = await Model.findById(id);
+    if (populationOpt) {
+      query.populate(populationOpt);
+    }
+    // execute the quary
+    const document = await query;
+
+    if (!document) {
+      return next(new ApiError(`No document for this id ${id}`, 404));
+    }
+    res.status(200).json({ data: document });
+  });
+
+exports.getAll = (Model, modelName = "") =>
+  asyncHandler(async (req, res) => {
+    let filter = {};
+    if (req.filterObj) {
+      filter = req.filterObj;
+    }
+    // Build query
+    const documentsCounts = await Model.countDocuments();
+    const apiFeatures = new ApiFeatures(Model.find(filter), req.query)
+      .paginate(documentsCounts)
+      .filter()
+      .search(modelName)
+      .limitFields()
+      .sort();
+
+    // Execute query
+    const { mongooseQuery, paginationResult } = apiFeatures;
+    const documents = await mongooseQuery;
+
+    res
+      .status(200)
+      .json({ results: documents.length, paginationResult, data: documents });
+  });
