@@ -28,6 +28,8 @@ const { protect, allowedTo } = require("../services/authServices");
 
 const router = express.Router();
 
+router.get("/all", getAllUsers);
+
 router.use(protect);
 
 //router.get("/getMe", getLoggedUserData)
@@ -54,7 +56,6 @@ router.put("/updateUserPassword", updateUserPassword);
 router.put("/updateRole/:id", idUserValidator, updateUserRole);
 router.put("/reactivate/:id", idUserValidator, reactivateUser);
 router.get("/deactivated", getDeactivatedUsers);
-router.get("/all", getAllUsers);
 router.get("/getAdmins", getAllAdmins);
 router.delete("/delete/:id", deleteUserAndAdmin);
 //router.get("/:id", idUserValidator, getUser);

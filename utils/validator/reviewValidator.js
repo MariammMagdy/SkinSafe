@@ -14,7 +14,7 @@ exports.createReviewValidator = [
     .withMessage("rating value required")
     .isFloat({ min: 1, max: 5 })
     .withMessage("Rating must be a number between 1 and 5"),
-  check("user").isMongoId().withMessage("Invalid Review id format"),
+  check("user").isMongoId().withMessage("Invalid User id format"),
   check("doctor")
     .isMongoId()
     .withMessage("Invalid Review id format")

@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Doctor = require("./doctorModel");
+const User = require("./userModel");
 
 const reviewSchema = mongoose.Schema(
   {
@@ -37,7 +38,7 @@ reviewSchema.statics.calcAverageRatingAndQuantity = async function (doctorId) {
       //stage 2: calculate average and total ratings(grouping)
       $group: {
         _id: "doctor",
-        avgRating: { $avg: "$ratings" },
+        avgRating: { $avg: "$rating" },
         ratingQuantity: { $sum: 1 },
       },
     },
