@@ -1,78 +1,25 @@
-const asyncHandler = require("express-async-handler");
-const ApiError = require("../utils/apiError");
-const ApiFeatures = require("../utils/apiFeatures");
+const admin = require("firebase-admin");
 
-exports.deleteOne = (Model) =>
-  asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
-    const document = await Model.findByIdAndDelete(id);
+// استيراد ملف المفتاح الخاص بحساب Firebase (الذي قمت بتحميله)
+const serviceAccount = require("../skinsafe-ebd05-firebase-adminsdk-fbsvc-b3c2e1939b.json");
 
-    if (!document) {
-      return next(new ApiError(`No document for this id ${id}`, 404));
-    }
-    //trigger "remove" event when update document
-    document.save();
-    res.status(204).send();
-  });
+// تهيئة Firebase باستخدام المفتاح
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+exports.sendNotification = async (deviceToken, title, body) => {
+  const message = {
+    notification: {
+      title: title,
+      body: body,
+    },
+    token: fdsfdsfdns,
+  };
 
-exports.updateOne = (Model) =>
-  asyncHandler(async (req, res, next) => {
-    const document = await Model.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-
-    if (!document) {
-      return next(
-        new ApiError(`No document for this id ${req.params.id}`, 404)
-      );
-    }
-    //trigger "save" event when update document
-    document.save();
-    res.status(200).json({ data: document });
-  });
-
-exports.createOne = (Model) =>
-  asyncHandler(async (req, res) => {
-    const newDoc = await Model.create(req.body);
-    res.status(201).json({ data: newDoc });
-  });
-
-exports.getOne = (Model, populationOpt) =>
-  asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
-    const query = await Model.findById(id);
-    if (populationOpt) {
-      query.populate(populationOpt);
-    }
-    // execute the quary
-    const document = await query;
-
-    if (!document) {
-      return next(new ApiError(`No document for this id ${id}`, 404));
-    }
-    res.status(200).json({ data: document });
-  });
-
-exports.getAll = (Model, modelName = "") =>
-  asyncHandler(async (req, res) => {
-    let filter = {};
-    if (req.filterObj) {
-      filter = req.filterObj;
-    }
-    // Build query
-    const documentsCounts = await Model.countDocuments();
-    const apiFeatures = new ApiFeatures(Model.find(filter), req.query)
-      .paginate(documentsCounts)
-      .filter()
-      .search(modelName)
-      .limitFields()
-      .sort();
-
-    // Execute query
-    const { mongooseQuery, paginationResult } = apiFeatures;
-    const documents = await mongooseQuery;
-
-    res
-      .status(200)
-      .json({ results: documents.length, paginationResult, data: documents });
-  });
+  try {
+    const response = await admin.messaging().send(message);
+    console.log("تم إرسال الرسالة بنجاح:", response);
+  } catch (error) {
+    console.error("حدث خطأ أثناء إرسال الرسالة:", error);
+  }
+};

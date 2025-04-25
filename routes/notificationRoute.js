@@ -5,7 +5,7 @@ const notificationService = require("../services/notificationServices");
 // إضافة إشعار جديد
 router.post("/", async (req, res) => {
   try {
-    const notification = await notificationService.createNotification(req.body);
+    const notification = await notificationService.sendNotification(req.body);
     res.status(201).json(notification);
   } catch (err) {
     res.status(500).json({ error: err.message });
