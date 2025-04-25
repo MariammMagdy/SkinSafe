@@ -10,8 +10,9 @@ exports.deleteOne = (Model) =>
     if (!document) {
       return next(new ApiError(`No document for this id ${id}`, 404));
     }
-    //trigger "remove" event when update document
-    document.save();
+
+    // Trigger "remove" event when update document
+    document.remove(); //whithout this event when i delete  ex review shouldnt aupdate av rate
     res.status(204).send();
   });
 
@@ -26,7 +27,8 @@ exports.updateOne = (Model) =>
         new ApiError(`No document for this id ${req.params.id}`, 404)
       );
     }
-    //trigger "save" event when update document
+    // Trigger "save" event when update document
+    //whithout this event when i update  ex review shouldnt aupdate av rate
     document.save();
     res.status(200).json({ data: document });
   });
@@ -37,14 +39,19 @@ exports.createOne = (Model) =>
     res.status(201).json({ data: newDoc });
   });
 
-exports.getOne = (Model, populationOpt) =>
+exports.getOne = (
+  Model,
+  populationOpt //when get spec product and i need  to show revies use populationOpt instead
+) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    const query = await Model.findById(id);
+    // 1) Build query
+    let query = Model.findById(id);
     if (populationOpt) {
-      query.populate(populationOpt);
+      query = query.populate(populationOpt);
     }
-    // execute the quary
+
+    // 2) Execute query
     const document = await query;
 
     if (!document) {
