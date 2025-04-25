@@ -12,6 +12,12 @@ const globalError = require("./middleware/errorMiddleware");
 const dbConnection = require("./config/database");
 const mountRoutes = require("./routes/index");
 
+// 🕒 Import and start UV Index Scheduler
+const scheduleUVIndexUpdate = require("./cron/scheduler");
+scheduleUVIndexUpdate();
+
+
+
 // Routes
 const articleRoute = require("./routes/articleRoute");
 const reviewRoute = require("./routes/reviewRoute");
@@ -23,10 +29,12 @@ const userRoute = require("./routes/userRoute");
 const authRoute = require("./routes/authRoute");
 const doctorAvailabilityRoute = require("./routes/doctorAvailabilityRoute");
 const appointmentRoute = require("./routes/appointmentRoute");
+const uvIndexRoute = require("./routes/uvIndexRoute");
 
 const {
   sendEveryMinuteNotification,
 } = require("./controllers/firebaseController");
+
 
 // Connect with db
 dbConnection();
@@ -81,6 +89,7 @@ const deleteExpiredVerifications = async () => {
 // Call the function
 deleteExpiredVerifications();
 
+
 //Mount Routes
 mountRoutes(app);
 app.use("/api/v1/articles", articleRoute);
@@ -94,6 +103,7 @@ app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/availability", doctorAvailabilityRoute);
 app.use("/api/v1/appointments", appointmentRoute);
 app.use("/api/v1/doctors/:doctorId/reviews", reviewRoute);
+app.use("/api/v1/uvIndex", uvIndexRoute);
 
 app.all("*", (req, res, next) => {
   next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
@@ -112,5 +122,5 @@ process.on("unhandledRejection", (err) => {
   });
 });
 
-console.log('KEY:', process.env.OPENWEATHER_API_KEY);
+//console.log('KEY:', process.env.OPENWEATHER_API_KEY);
 
