@@ -12,6 +12,8 @@ const validatorMiddleware = require("../middleware/validatorMiddleware");
 
 const router = express.Router();
 
+router.post("/", createUVIndexFromAPI);
+
 router
     .route("/latest-uv")
     .get(getLatestUVIndex); // Get the latest UV Index
