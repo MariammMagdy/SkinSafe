@@ -1,5 +1,5 @@
 const NotificationService = require("../services/notificationServices");
-
+const User = require("../models/userModel");
 const sendFirebaseNotification = async (req, res) => {
   try {
     const { title, body, deviceToken } = req.body;

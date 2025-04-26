@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const User = require("../models/userModel");
 
 // استيراد ملف المفتاح الخاص بحساب Firebase (الذي قمت بتحميله)
 const serviceAccount = require("../skinsafe-ebd05-firebase-adminsdk-fbsvc-b3c2e1939b.json");
@@ -13,13 +14,13 @@ exports.sendNotification = async (deviceToken, title, body) => {
       title: title,
       body: body,
     },
-    token: fdsfdsfdns,
+    token: User.fcmToken,
   };
 
   try {
     const response = await admin.messaging().send(message);
-    console.log("تم إرسال الرسالة بنجاح:", response);
+    console.log("The message sending succefully", response);
   } catch (error) {
-    console.error("حدث خطأ أثناء إرسال الرسالة:", error);
+    console.error("There are an error in sending message", error);
   }
 };
