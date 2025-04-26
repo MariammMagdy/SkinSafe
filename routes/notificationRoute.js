@@ -6,10 +6,13 @@ const factor = require("../services/handlersFactory");
 router.post("/", async (req, res) => {
   try {
     const notification = await notificationService.sendNotification(req.body);
-    res.status(201).json(notification);
+    res
+      .status(201)
+      .json({ message: "Notification sent successfully", notification });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+  console.log(req.body);
 });
 
 // جلب كل الإشعارات

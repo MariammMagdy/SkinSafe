@@ -14,7 +14,7 @@ exports.sendNotification = async (deviceToken, title, body) => {
       title: title,
       body: body,
     },
-    token: User.fcmToken,
+    token: deviceToken,
   };
 
   try {
