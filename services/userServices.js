@@ -32,15 +32,18 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
 // @desc    Get specific user by id
 // @route   GET /api/v1/users/:id
 // @access  Private/Admin
-exports.getUser = (User) =>
-  asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
-    const document = await User.findById(id);
-    if (!document) {
-      return next(new ApiError(`No document for this id ${id}`, 404));
-    }
-    res.status(200).json({ data: document });
-  });
+exports.getUser = asyncHandler(async (req, res, next) => {
+  const { id } = req.params; // جلب الـ ID من الرابط
+  const document = await User.findById(id); // البحث عن المستخدم باستخدام الـ ID
+
+  if (!document) {
+    // إذا ما كانش في مستخدم بالـ ID ده
+    return next(new ApiError(`No document for this id ${id}`, 404));
+  }
+
+  // إرجاع البيانات للمستخدم بعد ما ننظفها باستخدام sanitizeUser
+  res.status(200).json({ data: sanitizeUser(document) });
+});
 
 // @desc    Get information of logged user
 // @route   GET /users/getMe

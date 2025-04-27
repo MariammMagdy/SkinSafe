@@ -32,11 +32,6 @@ router.get("/all", getAllUsers);
 
 router.use(protect);
 
-//router.get("/getMe", getLoggedUserData)
-
-//router.get("/:id", getUser);
-router.get("/user/:id", getLoggedUserData);
-
 router.post("/", userServices.createUser(User));
 router.put(
   "/updateMe/:id",
@@ -46,6 +41,7 @@ router.put(
   updateUser
 );
 
+router.get("/getMe/:id", getLoggedUserData);
 router.put("/deactivateMe", deactivateLoggedUser);
 router.delete("/deleteMe/:id", deleteLoggedUser);
 router.put("/updateUserPassword", updateUserPassword);
@@ -58,7 +54,7 @@ router.put("/reactivate/:id", idUserValidator, reactivateUser);
 router.get("/deactivated", getDeactivatedUsers);
 router.get("/getAdmins", getAllAdmins);
 router.delete("/delete/:id", deleteUserAndAdmin);
-//router.get("/:id", idUserValidator, getUser);
+router.get("/user/:id", idUserValidator, getUser);
 router.post("/createAdmin", CreateAdmin);
 
 module.exports = router;

@@ -242,31 +242,28 @@ exports.protectCode = asyncHandler(async (req, res, next) => {
 // @desc    Forgot password
 // @route   POST /api/v1/auth/forgotPassword
 // @access  Public
-
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
-  //1)get user by an email
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
     return next(
       new ApiError(`There is no user with that email ${req.body.email}`, 404)
     );
   }
-  // 2) If user exist, Generate hash reset random 6 digits and save it in db
+
   const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
   const hashedResetCode = crypto
     .createHash("sha256")
     .update(resetCode)
     .digest("hex");
 
-  // Save hashed password reset code into db
   user.passwordResetCode = hashedResetCode;
-  // Add expiration time for password reset code (10 min)
   user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
   user.passwordResetVerified = false;
 
   await user.save();
-  // 3) Send the reset code via email
-  const message = `Hi ${user.name},\n We received a request to reset the password on your Skin Safe Account. \n ${resetCode} \n Enter this code to complete the reset. \n Thanks for helping us keep your account secure.\n Skin Safe Team`;
+
+  const message = `Hi ${user.name},\n We received a request to reset the password on your Skin Safe Account.\n ${resetCode}\n Enter this code to complete the reset.\n Thanks for helping us keep your account secure.\n Skin Safe Team`;
+
   try {
     await sendEmail({
       email: user.email,
@@ -278,15 +275,20 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
     user.passwordResetExpires = undefined;
     user.passwordResetVerified = undefined;
     await user.save();
+
     return next(new ApiError("There is an error in sending email", 500));
   }
-  token = createToken(user._id);
-  token = CryptoJs.AES.encrypt(token, 10).toString();
+
+  const token = createToken(user._id);
+  const encryptedToken = CryptoJS.AES.encrypt(
+    token,
+    process.env.ENCRYPTION_SECRET
+  ).toString();
 
   res.status(200).json({
     status: "success",
     message: "Reset code sent to your email",
-    token,
+    token: encryptedToken,
   });
 });
 
