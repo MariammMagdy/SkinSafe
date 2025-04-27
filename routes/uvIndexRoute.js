@@ -1,25 +1,13 @@
 const express = require("express");
-const {
-    createUVIndexValidator,
-} = require("../utils/validator/uvIndexValidator");
 
-const {
-    createUVIndexFromAPI,
-    getLatestUVIndex,
-} = require("../services/uvIndexServices");
-
-const validatorMiddleware = require("../middleware/validatorMiddleware");
+const { UV } = require("../services/uvIndexServices");
 
 const router = express.Router();
 
-// 📥 Create new UV Index manually (POST request)
-router.post("/", createUVIndexValidator, createUVIndexFromAPI);
-
 // 📤 Get latest UV Index
-router.get("/latest-uv", getLatestUVIndex);
+router.get("/latest-uv", UV);
 
 module.exports = router;
-
 
 
 

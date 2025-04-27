@@ -30,8 +30,6 @@ const {
   sendEveryMinuteNotification,
 } = require("./controllers/firebaseController");
 
-// 🕒 UV Index Scheduler
-const scheduleUVIndexUpdate = require("./cron/scheduler");
 
 
 // Connect with db
@@ -61,8 +59,7 @@ if (process.env.NODE_ENV === "development") {
   console.log(`mode: ${process.env.NODE_ENV}`);
 }
 
-// 🔥 Start the UV Index Scheduler
-scheduleUVIndexUpdate();
+
 
 const Verification = require("./models/codeModel");
 const deleteExpiredVerifications = async () => {
