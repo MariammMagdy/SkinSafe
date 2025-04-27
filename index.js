@@ -12,11 +12,6 @@ const globalError = require("./middleware/errorMiddleware");
 const dbConnection = require("./config/database");
 const mountRoutes = require("./routes/index");
 
-// 🕒 Import and start UV Index Scheduler
-const scheduleUVIndexUpdate = require("./cron/scheduler");
-scheduleUVIndexUpdate();
-
-
 
 // Routes
 const articleRoute = require("./routes/articleRoute");
@@ -34,6 +29,9 @@ const uvIndexRoute = require("./routes/uvIndexRoute");
 const {
   sendEveryMinuteNotification,
 } = require("./controllers/firebaseController");
+
+// 🕒 UV Index Scheduler
+const scheduleUVIndexUpdate = require("./cron/scheduler");
 
 
 // Connect with db
@@ -62,6 +60,9 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
   console.log(`mode: ${process.env.NODE_ENV}`);
 }
+
+// 🔥 Start the UV Index Scheduler
+scheduleUVIndexUpdate();
 
 const Verification = require("./models/codeModel");
 const deleteExpiredVerifications = async () => {

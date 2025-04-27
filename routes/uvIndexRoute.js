@@ -12,7 +12,27 @@ const validatorMiddleware = require("../middleware/validatorMiddleware");
 
 const router = express.Router();
 
-router.post("/", createUVIndexFromAPI);
+// 📥 Create new UV Index manually (POST request)
+router.post("/", createUVIndexValidator, createUVIndexFromAPI);
+
+// 📤 Get latest UV Index
+router.get("/latest-uv", getLatestUVIndex);
+
+module.exports = router;
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*router.post("/", createUVIndexFromAPI);
 
 router
     .route("/latest-uv")
@@ -22,4 +42,4 @@ router
     .route("/update-uv")
     .post(createUVIndexValidator, validatorMiddleware, createUVIndexFromAPI); // Update UV Index
 
-module.exports = router;
+module.exports = router;*/
