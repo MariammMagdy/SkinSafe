@@ -87,6 +87,22 @@ exports.protect = asyncHandler(async (req, res, next) => {
     return next(
       new ApiError("The user belonging to this token no longer exists.", 401)
     );
+  } // 4) Check if user change his password after token created
+  if (currentUser.passwordChangedAt) {
+    //1.convert date to timestamps
+    const passChangedTimestamp = parseInt(
+      currentUser.passwordChangedAt.getTime() / 1000,
+      10
+    );
+    // Password changed after token created (Error)
+    if (passChangedTimestamp > decoded.iat) {
+      return next(
+        new ApiError(
+          "User recently changed his password. please login again..",
+          401
+        )
+      );
+    }
   }
 
   req.user = currentUser;
@@ -109,8 +125,11 @@ exports.allowedTo = (...roles) => {
 exports.protectforget = asyncHandler(async (req, res, next) => {
   let token;
 
-  if (req.headers.authorization) {
-    token = req.headers.authorization;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
   }
 
   if (!token) {
@@ -254,15 +273,13 @@ exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
     .update(req.body.resetCode)
     .digest("hex");
 
-  const user = await User.findById(req.user._id);
-
-  if (
-    user.passwordResetCode !== hashedResetCode ||
-    user.passwordResetExpires <= Date.now()
-  ) {
-    return next(new ApiError("Reset code invalid or expired", 401));
-  }
-
+  const user = await User.findOne({
+    passwordResetCode: hashedResetCode,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    return next(new ApiError("Reset code invalid or expired"));
+  } // 2) Reset code valid
   user.passwordResetVerified = true;
   await user.save();
 
