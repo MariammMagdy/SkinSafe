@@ -120,7 +120,7 @@ exports.updateArticle = asyncHandler(async (req, res) => {
       new: true,
     }
   );
-  //console.log("Request Body ===>", req.body);
+  console.log("Request Body ===>", req.body);
 
   if (!article) return res.status(404).json({ error: "Article not found" });
   res.status(200).json({ message: "Article updated", article });
