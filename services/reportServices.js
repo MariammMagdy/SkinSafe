@@ -78,10 +78,9 @@ exports.createReport = asyncHandler(async (req, res) => {
 // =======================
 
 exports.getAllReports = asyncHandler(async (req, res) => {
-  const reports = await reportModel.find();
+  const reports = await reportModel.find({ user: req.params.id });
   res.status(200).json(reports);
 });
-
 // =======================
 // Get a single report by ID
 // =======================

@@ -160,14 +160,14 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
   const document = await User.findByIdAndUpdate(
     req.params.id,
     {
-        name: req.body.name,
+      name: req.body.name,
       userName: req.body.userName,
       phoneNumber: req.body.phoneNumber,
       dateOfBirth: req.body.dateOfBirth,
       gender: req.body.gender,
       skinTone: req.body.skinTone,
       email: req.body.email,
-      password: req.body.password, 
+      password: req.body.password,
     },
     {
       new: true,
@@ -219,7 +219,7 @@ exports.deactivateLoggedUser = asyncHandler(async (req, res, next) => {
     }
   );
 
-  res.status(204).json({ msg: "Deactivated" });
+  res.status(204).json({ message: "Deactivated" });
 });
 
 // @desc    Reactivate a user

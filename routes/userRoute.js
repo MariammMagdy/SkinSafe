@@ -43,6 +43,7 @@ router.put(
 
 router.get("/getMe/:id", getLoggedUserData);
 router.put("/deactivateMe", deactivateLoggedUser);
+router.put("/reactivateMe/:id", idUserValidator, reactivateUser);
 router.delete("/deleteMe/:id", deleteLoggedUser);
 router.put("/updateUserPassword", updateUserPassword);
 

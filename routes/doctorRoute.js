@@ -45,7 +45,7 @@ router
   .route("/:id")
   .get(getDoctorValidator, getDoctorById)
   .put(
-    //authService.allowedTo("admin", "manager"),
+    //authService.allowedTo("doctor", "manager"),
     uploadDoctorImage,
     resizeImage,
     updateDoctorValidator,

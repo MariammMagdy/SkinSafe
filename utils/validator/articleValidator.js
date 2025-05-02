@@ -21,10 +21,12 @@ exports.createArticleValidator = [
 
 exports.updateArticleValidator = [
   check("id").isMongoId().withMessage("Invalid Article id format"),
+  /*
   body("content").custom((val, { req }) => {
     req.body.slug = slugify(val);
     return true;
   }),
+  */
   validatorMiddleware,
 ];
 

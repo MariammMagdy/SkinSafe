@@ -115,6 +115,7 @@ exports.updateArticle = asyncHandler(async (req, res) => {
   const article = await articleModel.findByIdAndUpdate(
     req.params.id,
     req.body,
+
     {
       new: true,
     }
