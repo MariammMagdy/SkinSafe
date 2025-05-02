@@ -1,6 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const Appointment = require("../models/appointmentModel");
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/apiError");
 
 // 📌 Create Appointment
 exports.createAppointment = asyncHandler(async (req, res, next) => {
