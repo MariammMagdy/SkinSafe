@@ -10,6 +10,7 @@ const {
 const {
   getReview,
   getReviews,
+  getDoctorReviews,
   createReview,
   updateReview,
   deleteReview,
@@ -46,5 +47,5 @@ router
     deleteReviewValidator,
     deleteReview
   );
-
+router.route("/doctorReviews/:id").get(getReviewValidator, getDoctorReviews);
 module.exports = router;

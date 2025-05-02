@@ -12,7 +12,6 @@ const globalError = require("./middleware/errorMiddleware");
 const dbConnection = require("./config/database");
 const mountRoutes = require("./routes/index");
 
-
 // Routes
 const articleRoute = require("./routes/articleRoute");
 const reviewRoute = require("./routes/reviewRoute");
@@ -29,8 +28,6 @@ const uvIndexRoute = require("./routes/uvIndexRoute");
 const {
   sendEveryMinuteNotification,
 } = require("./controllers/firebaseController");
-
-
 
 // Connect with db
 dbConnection();
@@ -59,8 +56,6 @@ if (process.env.NODE_ENV === "development") {
   console.log(`mode: ${process.env.NODE_ENV}`);
 }
 
-
-
 const Verification = require("./models/codeModel");
 const deleteExpiredVerifications = async () => {
   const now = new Date();
@@ -87,7 +82,6 @@ const deleteExpiredVerifications = async () => {
 // Call the function
 deleteExpiredVerifications();
 
-
 //Mount Routes
 mountRoutes(app);
 app.use("/api/v1/articles", articleRoute);
@@ -100,7 +94,7 @@ app.use("/api/v1/users", userRoute);
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/availability", doctorAvailabilityRoute);
 app.use("/api/v1/appointments", appointmentRoute);
-app.use("/api/v1/doctors/:doctorId/reviews", reviewRoute);
+//app.use("/api/v1/doctors/:doctorId/reviews", reviewRoute);
 app.use("/api/v1/uvIndex", uvIndexRoute);
 
 app.all("*", (req, res, next) => {
@@ -121,4 +115,3 @@ process.on("unhandledRejection", (err) => {
 });
 
 //console.log('KEY:', process.env.OPENWEATHER_API_KEY);
-

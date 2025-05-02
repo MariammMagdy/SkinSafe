@@ -1,4 +1,6 @@
 const express = require("express");
+const parseFormData = require("../middleware/parseFormData");
+
 const {
   getArticleValidator,
   createArticleValidator,
@@ -26,7 +28,13 @@ router
 router
   .route("/:id")
   .get(getArticleValidator, getArticleById)
-  .put(updateArticleValidator, uploadArticleImage, resizeImage, updateArticle)
+  .put(
+    uploadArticleImage,
+    resizeImage,
+    parseFormData,
+    updateArticleValidator,
+    updateArticle
+  )
   .delete(deleteArticleValidator, deleteArticle);
 
 module.exports = router;
