@@ -27,7 +27,7 @@ const {
 const { protect, allowedTo } = require("../services/authServices");
 
 const router = express.Router();
-
+router.get("/user/:id", idUserValidator, getUser);
 router.get("/all", getAllUsers);
 
 router.use(protect);
@@ -55,7 +55,6 @@ router.put("/reactivate/:id", idUserValidator, reactivateUser);
 router.get("/deactivated", getDeactivatedUsers);
 router.get("/getAdmins", getAllAdmins);
 router.delete("/delete/:id", deleteUserAndAdmin);
-router.get("/user/:id", idUserValidator, getUser);
 router.post("/createAdmin", CreateAdmin);
 
 module.exports = router;
