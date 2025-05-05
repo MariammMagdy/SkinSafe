@@ -29,10 +29,10 @@ const { protect, allowedTo } = require("../services/authServices");
 const router = express.Router();
 router.get("/user/:id", idUserValidator, getUser);
 router.get("/all", getAllUsers);
+router.post("/", userServices.createUser(User));
 
 router.use(protect);
 
-router.post("/", userServices.createUser(User));
 router.put(
   "/updateMe/:id",
   updateUserValidator,
