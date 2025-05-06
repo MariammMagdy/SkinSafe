@@ -1,19 +1,24 @@
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
 const ApiFeatures = require("../utils/apiFeatures");
-
+/*
+const deleteOne = (Model) => async (req, res, next) => {
+  const document = await Model.findById(req.params.id);
+  if (!document) {
+    return next(new Error("No document found with that ID"));
+  }
+  await document.deleteOne(); // <-- هنا التغيير الصحيح
+  res.status(204).json({ message: "Deleted successfully" });
+};
+*/
 exports.deleteOne = (Model) =>
   asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
-    const document = await Model.findByIdAndDelete(id);
-
+    const document = await Model.findById(req.params.id);
     if (!document) {
-      return next(new ApiError(`No document for this id ${id}`, 404));
+      return next(new Error("No document found with that ID"));
     }
-
-    // Trigger "remove" event when update document
-    document.remove(); //whithout this event when i delete  ex review shouldnt aupdate av rate
-    res.status(204).send();
+    await document.deleteOne(); // <-- هنا التغيير الصحيح
+    res.status(204).json({ message: "Deleted successfully" });
   });
 
 exports.updateOne = (Model) =>
