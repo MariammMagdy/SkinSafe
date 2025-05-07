@@ -100,6 +100,7 @@ app.use("/api/v1/uvIndex", uvIndexRoute);
 app.all("*", (req, res, next) => {
   next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
 });
+app.use(globalError);
 
 const PORT = process.env.PORT || 6000;
 const server = app.listen(PORT, () => {

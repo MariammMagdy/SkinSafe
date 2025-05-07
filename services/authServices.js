@@ -14,15 +14,31 @@ const { sanitizeUser } = require("../utils/sanitizeData");
 
 // ============== SIGNUP ==============
 exports.signup = asyncHandler(async (req, res, next) => {
+  // Check if email already exists
+  const existingEmail = await User.findOne({ email: req.body.email });
+  if (existingEmail) {
+    return next(new ApiError("Email already exists", 400));
+  }
+
+  // Check if userName already exists
+  const existingUserName = await User.findOne({ userName: req.body.userName });
+  if (existingUserName) {
+    return next(new ApiError("Username already exists", 400));
+  }
+
+  // Clean up any previous verification
   const check = await Verification.findOne({ email: req.body.email });
   if (check) {
     await Verification.deleteOne({ _id: check._id });
   }
 
+  // Hash the password
   const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
+  // Prepare FCM tokens
   const fcmTokens = req.body.fcmToken ? [req.body.fcmToken] : [];
 
+  // Create the user
   const user = await User.create({
     name: req.body.name,
     userName: req.body.userName,
@@ -35,8 +51,12 @@ exports.signup = asyncHandler(async (req, res, next) => {
     fcmToken: fcmTokens,
   });
 
+  // Generate token
+  const token = createToken(user._id);
+
   return res.status(201).json({
     data: sanitizeUser(user),
+    token,
     message: "success",
   });
 });
