@@ -42,7 +42,7 @@ exports.createDoctorAvailabilityValidator = [
 
 // 🟡 Update Validator
 exports.updateDoctorAvailabilityValidator = [
-    check("doctor").optional().isMongoId().withMessage("Invalid Doctor ID format"),
+    check("id").optional().isMongoId().withMessage("Invalid Doctor Availability ID format"),
 
     body("availability").optional().isArray().withMessage("Availability must be an array"),
 

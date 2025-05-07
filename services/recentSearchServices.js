@@ -1,3 +1,5 @@
+const asyncHandler = require('express-async-handler');
+
 exports.addDoctor = asyncHandler(async (req, res, next) => {
     const user = await UserModel.findById(req.user._id);
 
