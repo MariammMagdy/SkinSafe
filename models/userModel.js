@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-
+ 
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
     userName: {
       type: String,
       required: [true, "User name is required"],
-      unique: [true, "User name must be unique"],
+      unique: true,
     },
     email: {
       type: String,
@@ -62,8 +62,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    doctors: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "Doctor",
+      },
+    ],
   },
   { timestamps: true }
 );
-
+ 
 module.exports = mongoose.model("User", userSchema);
