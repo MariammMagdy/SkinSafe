@@ -14,6 +14,82 @@ const { sanitizeUser } = require("../utils/sanitizeData");
 
 // ============== SIGNUP ==============
 exports.signup = asyncHandler(async (req, res, next) => {
+  const { email, fullName, password, passwordConfirm, ...restData } = req.body;
+
+  // تأكد إنه الإيميل أو اليوزر نيم مش موجودين أصلاً
+  const existingUser = await User.findOne({
+    $or: [{ email }, { userName: restData.userName }],
+  });
+
+  if (existingUser) {
+    return next(new ApiError("Email or Username already exists", 400));
+  }
+
+  // لو فيه تسجيل مؤقت قديم احذفه
+  const oldVerification = await Verification.findOne({ email });
+  if (oldVerification) {
+    await Verification.deleteOne({ _id: oldVerification._id });
+  }
+
+  // إعداد الكود العشوائي
+  const verificationCode = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
+  //console.log("DEBUG Verification Code:", verificationCode);
+
+  const hashResetCode = crypto
+    .createHash("sha256")
+    .update(verificationCode)
+    .digest("hex");
+  const expirationTime = Date.now() + 10 * 60 * 1000; // 10 دقائق
+
+  // تجهيز رسالة الإيميل
+  const message = `Hi ${fullName},
+We received a request to verify your CareDent Account.
+${verificationCode}
+Enter this code to complete your verification.
+Thanks for helping us keep your account secure.
+The CareDent Team`;
+
+  // إرسال الإيميل
+  try {
+    await sendEmail({
+      email, // حطينا الحقل بالحروف الصح
+      subject: "Email Verification Code (valid for 10 min)",
+      message,
+    });
+
+    // عمل هاش للباسورد
+    const saltRounds = parseInt(process.env.HASH_PASS, 10);
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // حفظ الداتا المؤقتة
+    await Verification.create({
+      email,
+      code: hashResetCode,
+      expiresAt: new Date(expirationTime),
+      tempUserData: {
+        ...restData,
+        email,
+        fullName,
+        password: hashedPassword,
+      },
+    });
+
+    res.status(200).json({
+      status: "success",
+      token: createToken(email),
+      message:
+        "Verification code sent to your email. It will expire in 10 minutes.",
+    });
+  } catch (err) {
+    return next(new ApiError("There was an error sending the email", 500));
+  }
+});
+
+/*
+// ============== SIGNUP ==============
+exports.signup = asyncHandler(async (req, res, next) => {
   // Check if email already exists
   const existingEmail = await User.findOne({ email: req.body.email });
   if (existingEmail) {
@@ -60,6 +136,100 @@ exports.signup = asyncHandler(async (req, res, next) => {
     message: "success",
   });
 });
+*/
+
+// ============== VERIFY EMAIL AND CREATE USER ==============
+exports.verifyEmailUser = asyncHandler(async (req, res, next) => {
+  const { code } = req.body;
+
+  const hashResetCode = crypto.createHash("sha256").update(code).digest("hex");
+
+  const verificationRecord = await Verification.findOne({
+    code: hashResetCode,
+  });
+
+  if (!verificationRecord) {
+    return next(new ApiError("Invalid verification code", 400));
+  }
+
+  // تحقق إذا الكود منتهي
+  if (verificationRecord.expiresAt < Date.now()) {
+    await Verification.deleteOne({ _id: verificationRecord._id });
+    return next(new ApiError("Verification code expired", 400));
+  }
+
+  // تحقق تاني إنه مفيش حد سجل بنفس الداتا في نفس اللحظة
+  const existingUser = await User.findOne({
+    $or: [
+      { email: verificationRecord.tempUserData.email },
+      { userName: verificationRecord.tempUserData.userName },
+    ],
+  });
+
+  if (existingUser) {
+    await Verification.deleteOne({
+      email: verificationRecord.tempUserData.email,
+    });
+    return next(new ApiError("Email or Username already exists", 400));
+  }
+
+  const date = Date.now();
+
+  // إنشاء المستخدم من الداتا المؤقتة
+  const user = await User.create({
+    ...verificationRecord.tempUserData,
+    passwordChangeAt: date,
+  });
+
+  // حذف كود التحقق
+  await Verification.deleteOne({ _id: verificationRecord._id });
+
+  // إنشاء توكن للمستخدم
+  const token = createToken(user._id);
+
+  res.status(201).json({
+    status: "success",
+    message: "User created successfully",
+    data: sanitizeUser(user),
+    token,
+  });
+});
+
+/*
+// ============== SIGNUP CODE VERIFICATION ==============
+exports.verifyEmailUser = asyncHandler(async (req, res, next) => {
+  const { code } = req.body;
+  const hashResetCode = crypto.createHash("sha256").update(code).digest("hex");
+
+  // دور على الكود المشفر
+  const verificationRecord = await Verification.findOne({
+    code: hashResetCode,
+  });
+
+  if (!verificationRecord) {
+    return next(new ApiError("Invalid verification code", 400));
+  }
+
+  const date = Date.now();
+
+  // أنشئ المستخدم من البيانات المؤقتة
+  const user = await User.create({
+    ...verificationRecord.tempUserData,
+    passwordChangeAt: date,
+  });
+
+  // احذف سجل التأكيد بعد ما المستخدم يتسجل
+  await Verification.deleteOne({ _id: verificationRecord._id });
+
+  const token = createToken(user._id);
+
+  res.status(201).json({
+    status: "success",
+    data: sanitizeUser(user),
+    token,
+  });
+});
+*/
 
 // ============== LOGIN ==============
 exports.login = asyncHandler(async (req, res, next) => {
@@ -206,10 +376,15 @@ exports.protectforget = asyncHandler(async (req, res, next) => {
 exports.protectCode = asyncHandler(async (req, res, next) => {
   let token;
 
-  if (req.headers.authorization) {
-    token = req.headers.authorization;
+  // 1. Get token from header
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
   }
 
+  // 2. Check if token exists
   if (!token) {
     return next(
       new ApiError(
@@ -219,18 +394,31 @@ exports.protectCode = asyncHandler(async (req, res, next) => {
     );
   }
 
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return next(new ApiError("Invalid or expired token", 401));
+  }
 
-  const currentCode = await Verification.findById(decoded.userId);
+  // 3. Check if the verification record still exists
+  /*   const currentCode = await Verification.findById(decoded.userId);
+   */
+
+  const currentCode = await Verification.findOne({
+    "tempUserData.email": decoded.userId,
+  });
 
   if (!currentCode) {
     return next(new ApiError("The verification code no longer exists", 401));
   }
 
+  // 4. Check if the code expired
   if (Date.now() > currentCode.expiresAt) {
     return next(new ApiError("Verification code expired", 400));
   }
 
+  // 5. Save verification data to req
   req.code = currentCode;
   next();
 });
