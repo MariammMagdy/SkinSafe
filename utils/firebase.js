@@ -1,11 +1,32 @@
-// utils/firebase.js
+const axios = require("axios");
 
-const admin = require("firebase-admin");
+// Send push notification to a device via FCM
+exports.sendPushNotification = async (deviceToken, { title, message }) => {
+  const serverKey = process.env.FCM_SERVER_KEY; // نحطه في env file
+  const url = "https://fcm.googleapis.com/fcm/send";
 
-const serviceAccount = require("../skinsafe-ebd05-firebase-adminsdk-fbsvc-b3c2e1939b.json"); // ملف JSON من Firebase
+  const payload = {
+    to: deviceToken,
+    notification: {
+      title,
+      body: message,
+      sound: "default",
+    },
+    priority: "high",
+  };
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
-
-module.exports = admin;
+  try {
+    await axios.post(url, payload, {
+      headers: {
+        Authorization: `key=${serverKey}`,
+        "Content-Type": "application/json",
+      },
+    });
+    console.log("Push notification sent successfully ✅");
+  } catch (error) {
+    console.error(
+      "Failed to send push notification ❌",
+      error.response?.data || error.message
+    );
+  }
+};
