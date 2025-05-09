@@ -83,13 +83,14 @@ const deleteExpiredVerifications = async () => {
 // Call the function
 deleteExpiredVerifications();
 
+app.use(globalError);
 //Mount Routes
 mountRoutes(app);
 app.use("/api/v1/articles", articleRoute);
 app.use("/api/v1/reviews", reviewRoute);
 app.use("/api/v1/reports", reportRoute);
 app.use("/api/v1/doctors", doctorRoute);
-app.use("/api/v1/recentSearch",recentSearchRoute);
+app.use("/api/v1/recentSearch", recentSearchRoute);
 app.use("/api/v1/firebase", firebaseRoute);
 app.use("/api/v1/notifications", notificationRoute);
 app.use("/api/v1/users", userRoute);
@@ -102,7 +103,6 @@ app.use("/api/v1/uvIndex", uvIndexRoute);
 app.all("*", (req, res, next) => {
   next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
 });
-app.use(globalError);
 
 const PORT = process.env.PORT || 6000;
 const server = app.listen(PORT, () => {
@@ -118,4 +118,3 @@ process.on("unhandledRejection", (err) => {
 });
 
 //console.log('KEY:', process.env.OPENWEATHER_API_KEY);
-
