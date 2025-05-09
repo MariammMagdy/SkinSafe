@@ -31,6 +31,8 @@ exports.createUserValidator = [
   check("dateOfBirth")
     .notEmpty()
     .withMessage("Date of birth is required")
+    .isDate()
+    .withMessage("Invalid date format")
     .isISO8601()
     .withMessage("Invalid date format"),
 
