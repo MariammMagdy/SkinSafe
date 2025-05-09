@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
- 
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -23,8 +23,12 @@ const userSchema = new mongoose.Schema(
       required: [true, "Phone number is required"],
     },
     dateOfBirth: {
-      type: Date,
+      type: String,
       required: [true, "Date of birth is required"],
+      match: [
+        /^\d{2}-\d{2}-\d{4}$/,
+        "Date of birth must be in DD-MM-YYYY format",
+      ],
     },
     gender: {
       type: String,
@@ -71,5 +75,5 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
- 
+
 module.exports = mongoose.model("User", userSchema);

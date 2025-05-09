@@ -31,15 +31,9 @@ exports.createUserValidator = [
   check("dateOfBirth")
     .notEmpty()
     .withMessage("Date of birth is required")
-    .custom((value) => {
-      // نحول "15-05-2003" لتاريخ
-      const [day, month, year] = value.split("-");
-      const isoDate = new Date(`${year}-${month}-${day}`);
-      if (isoDate.toString() === "Invalid Date") {
-        throw new Error("Invalid date format. Expected format: DD-MM-YYYY");
-      }
-      return true;
-    }),
+    .matches(/^\d{2}-\d{2}-\d{4}$/)
+    .withMessage("Date of birth must be in DD-MM-YYYY format"),
+
   check("gender")
     .notEmpty()
     .withMessage("Gender is required")
