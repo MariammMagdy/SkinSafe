@@ -401,10 +401,11 @@ exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
   } // 2) Reset code valid
   user.passwordResetVerified = true;
   await user.save();
-
+  const token = createToken(user._id);
   res.status(200).json({
     status: "success",
     message: "Reset code verified",
+    token,
   });
 });
 
@@ -433,11 +434,8 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
 
   await user.save();
 
-  const token = createToken(user._id);
-
   res.status(200).json({
     status: "success",
-    token,
   });
 });
 
