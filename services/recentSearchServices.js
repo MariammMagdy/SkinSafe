@@ -11,8 +11,20 @@ exports.addDoctor = asyncHandler(async (req, res, next) => {
    
     const doctorId = req.body.doctorId || req.body; // لو بعت كـ JSON: { "doctorId": "..." } أو ID مباشر
    
+     user.doctors = user.doctors.filter(
+    (docId) => docId.toString() !== doctorId.toString()
+  );
+ 
+  user.doctors.unshift(doctorId);
+ 
+  if (user.doctors.length > 3) {
+    user.doctors.pop();
+  }
+ 
+  await user.save();
+    
     // تأكد إن الدكتور موجود
-    const doctor = await DoctorModel.findById(doctorId);
+    /*const doctor = await DoctorModel.findById(doctorId);
     if (!doctor) {
       return next(new ApiError("Doctor not found", 404));
     }
@@ -23,7 +35,7 @@ exports.addDoctor = asyncHandler(async (req, res, next) => {
       user.doctors.shift();
     }
    
-    await user.save();
+    await user.save();*/
    
     res.status(200).json({
       status: "success",
