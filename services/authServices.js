@@ -58,7 +58,6 @@ The Skin Safe Team`;
       subject: "Email Verification Code (valid for 10 min)",
       message,
     });
-
     // عمل هاش للباسورد
     const saltRounds = parseInt(process.env.HASH_PASS, 10);
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -76,12 +75,14 @@ The Skin Safe Team`;
       },
     });
 
+
     res.status(200).json({
       status: "success",
       token: createToken(email),
       message:
         "Verification code sent to your email. It will expire in 10 minutes.",
     });
+
   } catch (err) {
     console.error("Email sending error:", err);
     throw new Error(err.message || "There was an error sending the email");
