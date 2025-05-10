@@ -25,7 +25,6 @@ const authRoute = require("./routes/authRoute");
 const doctorAvailabilityRoute = require("./routes/doctorAvailabilityRoute");
 const appointmentRoute = require("./routes/appointmentRoute");
 const uvIndexRoute = require("./routes/uvIndexRoute");
-const testEmailRoute = require("./routes/testEmailRoute");
 
 const {
   sendEveryMinuteNotification,
@@ -97,8 +96,8 @@ app.use("/api/v1/users", userRoute);
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/availability", doctorAvailabilityRoute);
 app.use("/api/v1/appointments", appointmentRoute);
+//app.use("/api/v1/doctors/:doctorId/reviews", reviewRoute);
 app.use("/api/v1/uvIndex", uvIndexRoute);
-app.use("/api/v1", testEmailRoute);
 
 app.all("*", (req, res, next) => {
   next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
