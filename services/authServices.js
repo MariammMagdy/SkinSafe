@@ -83,7 +83,8 @@ The Skin Safe Team`;
         "Verification code sent to your email. It will expire in 10 minutes.",
     });
   } catch (err) {
-    return next(new ApiError("There was an error sending the email", 500));
+    console.error("Email sending error:", err);
+    throw new Error(err.message || "There was an error sending the email");
   }
 });
 
