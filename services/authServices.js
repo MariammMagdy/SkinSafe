@@ -412,7 +412,6 @@ exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
     status: "success",
     message: "Reset code verified",
     token: encryptedToken,
-        token: encryptedToken,
 
   });
 });
