@@ -438,9 +438,11 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
   user.passwordResetVerified = undefined;
 
   await user.save();
+  const token = createToken(user._id);
 
   res.status(200).json({
     status: "success",
+    token,
   });
 });
 
