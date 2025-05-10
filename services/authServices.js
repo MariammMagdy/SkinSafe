@@ -403,10 +403,14 @@ exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
   user.passwordResetVerified = true;
   await user.save();
   const token = createToken(user._id);
+  const encryptedToken = CryptoJS.AES.encrypt(
+    token,
+    process.env.ENCRYPTION_SECRET
+  ).toString();
   res.status(200).json({
     status: "success",
     message: "Reset code verified",
-    token,
+    token: encryptedToken,
   });
 });
 
