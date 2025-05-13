@@ -5,6 +5,7 @@ const reviewSchema = new mongoose.Schema(
   {
     title: {
       type: String,
+      trim: true,
     },
     rating: {
       type: Number,
@@ -26,6 +27,7 @@ const reviewSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+reviewSchema.index({ doctor: 1, user: 1 }, { unique: true });
 
 reviewSchema.pre(/^find/, function (next) {
   this.populate({ path: "user", select: "name" });
@@ -47,6 +49,7 @@ reviewSchema.statics.calcAverageRatingsAndQuantity = async function (doctorId) {
       },
     },
   ]);
+  console.log("Aggregation result: ", result); // 👈 شوف ده بيطبع إيه
 
   if (result.length > 0) {
     await Doctor.findByIdAndUpdate(doctorId, {
@@ -69,6 +72,9 @@ reviewSchema.post("save", async function () {
 //call this when i delete  ex review in services
 reviewSchema.post("remove", async function () {
   await this.constructor.calcAverageRatingsAndQuantity(this.doctor);
+});
+reviewSchema.post(/^findOneAnd/, async function (doc) {
+  if (doc) await doc.constructor.calcAverageRatingsAndQuantity(doc.doctor);
 });
 
 module.exports = mongoose.model("Review", reviewSchema);
