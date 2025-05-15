@@ -28,6 +28,7 @@ const doctorSchema = new mongoose.Schema(
     },
     ratingsAverage: {
       type: Number,
+      default: 0,
       min: [1, "Rating must be more than or equal to 1.0"],
       max: [5, "Rating must be less than or equal to 5.0"],
     },
@@ -73,7 +74,7 @@ doctorSchema.virtual("reviews", {
   foreignField: "doctor",
   localField: "_id",
 });
-
+/*
 // ✅ Optional: populate reviews automatically when finding doctor
 // (لو مش محتاجها دائمًا، شيلها)
 doctorSchema.pre(/^find/, function (next) {
@@ -83,7 +84,7 @@ doctorSchema.pre(/^find/, function (next) {
   });
   next();
 });
-
+*/
 // Define virtual field for availability
 
 doctorSchema.virtual("availability", {
@@ -91,9 +92,18 @@ doctorSchema.virtual("availability", {
   foreignField: "doctor",
   localField: "_id",
 });
-
+/*
 doctorSchema.pre(/^find/, function (next) {
   this.populate("availability"); // <-- ضيفي دي مع باقي الـ populate زي reviews
+  next();
+});
+*/
+doctorSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "reviews",
+    select: "rating comment", // أو أي حقول محتاجاها من الـ Review
+  }).populate("availability");
+
   next();
 });
 
