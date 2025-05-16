@@ -12,11 +12,11 @@ exports.createAppointmentValidator = [
     .isMongoId()
     .withMessage("Invalid Doctor ID format"),
 
-  check("patient")
+  /*check("patient")
     .notEmpty()
     .withMessage("Patient ID is required")
     .isMongoId()
-    .withMessage("Invalid Patient ID format"),
+    .withMessage("Invalid Patient ID format"),*/
 
   check("date")
     .notEmpty()

@@ -1,4 +1,5 @@
 const express = require("express");
+const authService = require("../services/authServices");
 
 const {
     getAppointmentValidator,
@@ -19,7 +20,7 @@ const router = express.Router();
 
 router
     .route("/")
-    .post(createAppointmentValidator, createAppointment)
+    .post(createAppointmentValidator,authService.protect, authService.allowedTo("user"), createAppointment)
     .get(getAllAppointments);
 
 router
