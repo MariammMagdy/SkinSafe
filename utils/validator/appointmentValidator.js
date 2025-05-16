@@ -42,7 +42,7 @@ exports.createAppointmentValidator = [
         (d) => d.day.toLowerCase() === dayName.toLowerCase()
       );
 
-      if (!day || !day.slots.includes(value)) {
+      if (!day || !day.timeSlots.includes(value)) {
         throw new Error(`Invalid time slot for ${dayName}`);
       }
 
