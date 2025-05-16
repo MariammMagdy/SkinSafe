@@ -6,7 +6,7 @@ const ApiError = require("../utils/apiError");
 // 📌 Create Appointment
 exports.createAppointment = asyncHandler(async (req, res, next) => {
     delete req.body.patient;
-    const patient = await User.findById(req.user.id);
+    const patient = await User.findOne({email:req.user.email});//findById(req.user.id);
     if (!patient) {
         return next(new ApiError(`No user found with id ${req.user.id}`, 404));
     }
