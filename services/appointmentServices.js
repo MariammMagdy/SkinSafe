@@ -46,7 +46,7 @@ exports.getAllAppointments = asyncHandler(async (req, res) => {
         return next(new ApiError(`No user found with id ${req.user.id}`, 404));
     }
     const appointments = await Appointment.find({patient:patient})
-        .populate({ path: "doctor", select: "firstName secondName specialty",})
+        .populate({ path: "doctor", select: "firstName secondName specialty", options: { virtuals: false }, })
         //.populate("doctor", "firstName secondName specialty")
         .populate("patient", "name email")//;
         .lean();
