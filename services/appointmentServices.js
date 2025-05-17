@@ -64,7 +64,7 @@ exports.getAllAppointments = asyncHandler(async (req, res) => {
     });*/
 
 
-// 📌 Get Appointment by ID
+/*// 📌 Get Appointment by ID
 exports.getAppointmentById = asyncHandler(async (req, res, next) => {
     const patient = await User.findById(req.user._id);
     if (!patient) {
@@ -125,9 +125,9 @@ exports.deleteAppointment = asyncHandler(async (req, res, next) => {
     }
 
     res.status(200).json({ message: "Appointment deleted successfully" });
-});
+});*/
 
-    /*// 📌 Get Appointment by ID
+// 📌 Get Appointment by ID
 exports.getAppointmentById = asyncHandler(async (req, res, next) => {
     const appointment = await Appointment.findById(req.params.id)
         .populate("doctor")
@@ -163,4 +163,4 @@ exports.deleteAppointment = asyncHandler(async (req, res, next) => {
     }
 
     res.status(200).json({ message: "Appointment deleted successfully" });
-});*/
+});
