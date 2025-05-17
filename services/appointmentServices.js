@@ -41,12 +41,27 @@ exports.createAppointment = asyncHandler(async (req, res, next) => {
 
 // 📌 Get All Appointments
 exports.getAllAppointments = asyncHandler(async (req, res) => {
+    const patient = await User.findById(req.user._id);//findById(req.user.id);
+    if (!patient) {
+        return next(new ApiError(`No user found with id ${req.user.id}`, 404));
+    }
+    const appointments = await Appointment.find({patient:patient})
+        .populate({ path: "doctor", select: "firstName secondName specialty",})
+        //.populate("doctor", "firstName secondName specialty")
+        .populate("patient", "name email")//;
+        .lean();
+
+        res.status(200).json({ results: appointments.length, data: appointments });
+    });
+
+    /*// 📌 Get All Appointments
+exports.getAllAppointments = asyncHandler(async (req, res) => {
     const appointments = await Appointment.find()
         .populate("doctor", "firstName secondName specialty")
         .populate("patient", "name email");
 
         res.status(200).json({ results: appointments.length, data: appointments });
-    });
+    });*/
 
 // 📌 Get Appointment by ID
 exports.getAppointmentById = asyncHandler(async (req, res, next) => {

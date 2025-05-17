@@ -21,7 +21,7 @@ const router = express.Router();
 router
     .route("/")
     .post(createAppointmentValidator,authService.protect, authService.allowedTo("user"), createAppointment)
-    .get(getAllAppointments);
+    .get(authService.protect, authService.allowedTo("user"), getAllAppointments);
 
 router
     .route("/:id")
