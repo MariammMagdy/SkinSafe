@@ -25,8 +25,8 @@ router
 
 router
     .route("/:id")
-    .get(getAppointmentValidator, getAppointmentById)
-    .put(updateAppointmentValidator, updateAppointment)
-    .delete(deleteAppointmentValidator, deleteAppointment);
+    .get(getAppointmentValidator, authService.protect, authService.allowedTo("user"), getAppointmentById)
+    .put(updateAppointmentValidator, authService.protect, authService.allowedTo("user"), updateAppointment)
+    .delete(deleteAppointmentValidator, authService.protect, authService.allowedTo("user"), deleteAppointment);
 
 module.exports = router;
