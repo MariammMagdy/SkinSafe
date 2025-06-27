@@ -59,6 +59,7 @@ exports.getDoctorValidator = [
 exports.updateDoctorValidator = [
   check("id").isMongoId().withMessage("Invalid doctor id format"),
   check("experience")
+    .optional()
     .isNumeric()
     .withMessage("Experience must be a number")
     .isInt({ min: 1 })
