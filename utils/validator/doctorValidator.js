@@ -72,23 +72,6 @@ exports.updateDoctorValidator = [
     .withMessage("Too short about section for a doctor")
     .isLength({ max: 50000 })
     .withMessage("Too long about section for a doctor"),
-  check("ratingsAverage")
-    .optional()
-    .isFloat()
-    .withMessage("rating average must be a number")
-    .custom((value) => {
-    if (value < 1) {
-      throw new Error("Rating must be at least 1");
-    }
-    if (value > 5) {
-      throw new Error("Rating must not exceed 5");
-    }
-    return true;
-    }),
-  check("ratingsQuantity")
-    .optional()
-    .isNumeric()
-    .withMessage("Ratings Quantity must be a number"),
   check("image").optional(),
   check("certificate")
     .optional()
