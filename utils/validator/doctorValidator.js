@@ -70,7 +70,7 @@ exports.updateDoctorValidator = [
     .optional()
     .isLength({ min: 10 })
     .withMessage("Too short about section for a doctor")
-    .isLength({ max: 500 })
+    .isLength({ max: 50000 })
     .withMessage("Too long about section for a doctor"),
   check("ratingsAverage")
     .optional()
