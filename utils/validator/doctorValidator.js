@@ -22,7 +22,7 @@ exports.createDoctorValidator = [
     .withMessage("Specialty is required")
     .isLength({ min: 3 })
     .withMessage("Too short specialty name for a doctor")
-    .isLength({ max: 50 })
+    .isLength({ max: 200 })
     .withMessage("Too long specialty name for a doctor"),
   check("experience")
     .notEmpty()
