@@ -85,6 +85,10 @@ exports.updateDoctorValidator = [
     }
     return true;
     }),
+  check("ratingsQuantity")
+    .optional()
+    .isNumeric()
+    .withMessage("Ratings Quantity must be a number"),
   check("image").optional(),
   check("certificate")
     .optional()
