@@ -20,7 +20,7 @@ exports.UV = asyncHandler(async (req, res, next) => {
         }
 
         // التأكد من وجود lat و lon في الطلب
-        const { lat, lon } = req.body;
+        const { lat, lon } = req.query;
         if (!lat || !lon) {
             return next(new ApiError("Latitude and Longitude are required", 400));
         }
@@ -56,3 +56,5 @@ exports.UV = asyncHandler(async (req, res, next) => {
     return next(new ApiError(message, statusCode));
     }
 });
+
+
