@@ -3,7 +3,7 @@ const Doctor = require("./doctorModel");
 
 const reviewSchema = new mongoose.Schema(
   {
-    title: {
+    message: {
       type: String,
       trim: true,
     },
