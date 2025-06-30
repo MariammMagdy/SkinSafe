@@ -155,8 +155,39 @@ exports.deleteUserAndAdmin = asyncHandler(async (req, res, next) => {
 // @desc    Update user without password or role
 // @route   PUT /users/updateMe
 // @access  Private/user
-
 exports.updateUser = asyncHandler(async (req, res, next) => {
+  const updateData = {};
+
+  // خدي الحقول اللي موجودة فعلاً في الـ req.body
+  const allowedFields = [
+    "name",
+    "userName",
+    "phoneNumber",
+    "dateOfBirth",
+    "gender",
+    "skinTone",
+    "email",
+    "password",
+  ];
+
+  allowedFields.forEach((field) => {
+    if (req.body[field] !== undefined) {
+      updateData[field] = req.body[field];
+    }
+  });
+
+  const user = await User.findByIdAndUpdate(req.params.id, updateData, {
+    new: true,
+  });
+
+  if (!user) {
+    return next(new ApiError(`No user for this id ${req.params.id}`, 404));
+  }
+
+  res.status(200).json({ data: sanitizeUser(user) });
+});
+
+/* exports.updateUser = asyncHandler(async (req, res, next) => {
   const document = await User.findByIdAndUpdate(
     req.params.id,
     {
@@ -179,7 +210,7 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
   }
   res.status(200).json({ data: sanitizeUser(user) });
 });
-
+ */
 // @desc    Update user  role
 // @route   PUT /users/updateRole/:id
 // @access  Private/admin

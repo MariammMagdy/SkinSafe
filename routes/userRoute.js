@@ -36,7 +36,7 @@ router.use(protect);
 
 router.put(
   "/updateMe/:id",
-  updateUserValidator,
+  // updateUserValidator,
   uploadUserImage,
   resizeImage,
   updateUser
