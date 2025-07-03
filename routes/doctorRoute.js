@@ -26,7 +26,8 @@ const router = express.Router();
 router.use("/:doctorId/reviews", reviewsRoute);
 
 // ---------------- PUBLIC ROUTES ----------------
-router.route("/").get(getAllDoctors, getAllDoctorsName);
+router.route("/").get(getAllDoctors);
+router.route("/getAllDoctorNames").get(getAllDoctorsName);
 
 // ---------------- PROTECTED ROUTES ----------------
 
