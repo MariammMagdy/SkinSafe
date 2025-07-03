@@ -83,6 +83,11 @@ exports.getAllDoctors = asyncHandler(async (req, res) => {
   res.status(200).json({ data: doctors });
 });
 
+exports.getAllDoctorsName = asyncHandler(async (req, res) => {
+  const doctors = await doctorModel.find().select('firstName scondName').sort({ ratingAverage: -1 });
+  res.status(200).json({ data: doctors });
+})
+
 // =======================
 // Get Doctor By ID
 // =======================

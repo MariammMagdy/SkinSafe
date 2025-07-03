@@ -9,6 +9,7 @@ const {
 const {
   createDoctor,
   getAllDoctors,
+  getAllDoctorsName,
   getDoctorById,
   updateDoctor,
   deleteDoctor,
@@ -25,7 +26,7 @@ const router = express.Router();
 router.use("/:doctorId/reviews", reviewsRoute);
 
 // ---------------- PUBLIC ROUTES ----------------
-router.route("/").get(getAllDoctors);
+router.route("/").get(getAllDoctors, getAllDoctorsName);
 
 // ---------------- PROTECTED ROUTES ----------------
 
