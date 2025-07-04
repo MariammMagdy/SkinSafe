@@ -84,7 +84,7 @@ exports.getAllDoctors = asyncHandler(async (req, res) => {
 });
 
 exports.getAllDoctorsName = asyncHandler(async (req, res) => {
-  const doctors = await doctorModel.find().select('firstName scondName').select('-reviews').sort({ ratingAverage: -1 });
+  const doctors = await doctorModel.find().select('firstName secondName').select('-reviews').sort({ ratingAverage: -1 });
   res.status(200).json({ data: doctors });
 })
 
