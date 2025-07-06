@@ -1,4 +1,5 @@
 const express = require("express");
+
 const {
   createReportValidator,
   getReportValidator,
@@ -13,8 +14,11 @@ const {
   uploadReportImage,
   resizeImage,
 } = require("../services/reportServices");
+const authServer = require("../services/authServices");
 
 const router = express.Router();
+
+router.use(authServer.protect, authServer.allowedTo("user"));
 
 router
   .route("/")

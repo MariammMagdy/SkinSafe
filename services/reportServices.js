@@ -7,70 +7,90 @@ const asyncHandler = require("express-async-handler");
 const reportModel = require("../models/reportModel");
 const cloudinary = require("../utils/cloudinary");
 const multer = require("multer");
+const FormData = require("form-data");
+const axios = require("axios");
 
-// =======================
-// Multer Config
-// =======================
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
+const storage = multer.memoryStorage();
 
 const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const fileTypes = /jpeg|jpg|png/;
-    const extname = fileTypes.test(
-      path.extname(file.originalname).toLowerCase()
-    );
-    const mimetype = fileTypes.test(file.mimetype);
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error("Only .png, .jpg and .jpeg format allowed!"));
-    }
+    const allowed = /jpeg|jpg|png/;
+    const extname = allowed.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowed.test(file.mimetype);
+    if (extname && mimetype) cb(null, true);
+    else cb(new Error("Only .jpeg/.jpg/.png files allowed"));
   },
 });
 
 exports.uploadReportImage = upload.single("scannedImage");
 
-// =======================
-// Resize + Upload to Cloudinary
-// =======================
 exports.resizeImage = asyncHandler(async (req, res, next) => {
-  if (req.file) {
-    const transformationOption = {
-      width: 500,
-      height: 500,
-      crop: "fill",
-      gravity: "auto",
-      format: "auto",
-      quality: "auto",
-    };
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
 
-    const result = await cloudinary.uploader.upload(req.file.path, {
+    const base64Image = `data:${
+      req.file.mimetype
+    };base64,${req.file.buffer.toString("base64")}`;
+    const cloudinaryResult = await cloudinary.uploader.upload(base64Image, {
       folder: "reports/new",
-      transformation: transformationOption,
+      transformation: {
+        width: 500,
+        height: 500,
+        crop: "fill",
+        gravity: "auto",
+        format: "auto",
+        quality: "auto",
+      },
     });
 
-    // ✅ تم التعديل هنا
-    req.body.scannedImage = result.secure_url;
+    req.body.scannedImage = cloudinaryResult.secure_url;
+
+    const form = new FormData();
+    form.append("file", req.file.buffer, {
+      filename: req.file.originalname || "image.jpg",
+      contentType: req.file.mimetype,
+    });
+
+    const aiResponse = await axios.post(
+      "https://skin-safe-production.up.railway.app/predict",
+      form,
+      {
+        headers: {
+          "x-api-key": process.env.API_KEY,
+          ...form.getHeaders(),
+        },
+      }
+    );
+
+    req.body.typeDetected = aiResponse.data.label;
+    req.body.confidence = aiResponse.data.confidence;
+    req.aiResult = aiResponse.data;
+
+    next();
+  } catch (err) {
+    console.error("AI ERROR:", err.response?.data || err.message);
+    res.status(500).json({
+      message: "Failed to process image",
+      error: err.response?.data || err.message,
+    });
   }
-  next();
 });
 
 // =======================
 // Create a new report
 // =======================
 exports.createReport = asyncHandler(async (req, res) => {
-  req.body.slug = slugify(req.body.typeDetected);
+  req.body.user = req.user._id;
   const report = await reportModel.create(req.body);
-  res.status(201).json({ data: report });
+
+  res.status(201).json({
+    data: report,
+    aiResult: req.aiResult || null,
+  });
 });
 
 // =======================
@@ -83,7 +103,7 @@ exports.getAllReports = asyncHandler(async (req, res) => {
 });
 // =======================
 // Get a single report by ID
-// =======================
+// =======================*/
 
 exports.getReportById = asyncHandler(async (req, res) => {
   const report = await reportModel.findById(req.params.id);
