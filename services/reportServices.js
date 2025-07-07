@@ -8,6 +8,7 @@ const reportModel = require("../models/reportModel");
 const cloudinary = require("../utils/cloudinary");
 const multer = require("multer");
 const FormData = require("form-data");
+
 const axios = require("axios");
 
 const storage = multer.memoryStorage();
@@ -26,12 +27,53 @@ const upload = multer({
 
 exports.uploadReportImage = upload.single("scannedImage");
 
+// ===================
+// Generate Comment via OpenRouter AI
+// ===================
+const generateComment = async (label, confidence) => {
+    const prompt = `
+You are a medical assistant specialized in dermatology.
+
+Based on the following AI diagnosis, generate a short and realistic advice (1–2 sentences max) in **English**, telling the user what to do next:
+
+Disease type: ${label}
+Confidence level: ${confidence}
+
+The tone should be calm, informative, and helpful. If the condition is severe, advise them to visit a doctor. Otherwise, explain what actions to take or signs to watch for.
+`;
+
+  const response = await axios.post(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      model: "meta-llama/llama-3-8b-instruct:free",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return response.data.choices[0].message.content;
+};
+
+// ===================
+// Resize + Predict + Generate Comment
+// ===================
 exports.resizeImage = asyncHandler(async (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No image uploaded" });
     }
 
+    // رفع الصورة لـ Cloudinary
     const base64Image = `data:${
       req.file.mimetype
     };base64,${req.file.buffer.toString("base64")}`;
@@ -49,6 +91,7 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
 
     req.body.scannedImage = cloudinaryResult.secure_url;
 
+    // استدعاء AI لعمل التنبؤ
     const form = new FormData();
     form.append("file", req.file.buffer, {
       filename: req.file.originalname || "image.jpg",
@@ -66,13 +109,41 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
       }
     );
 
-    req.body.typeDetected = aiResponse.data.label;
-    req.body.confidence = aiResponse.data.confidence;
-    req.aiResult = aiResponse.data;
+    const { label, confidence } = aiResponse.data;
+    req.body.typeDetected = label;
+    req.body.confidence = confidence;
+
+    // 🔁 استدعاء OpenRouter
+    const prompt = `You are a dermatologist assistant. Based on the diagnosis "${label}" with a confidence of ${confidence}, provide a single, concise but informative sentence (around 2 lines) in English giving advice to the patient. Avoid repetition and don't mention confidence again.`;
+    const gptResponse = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: "mistralai/mistral-7b-instruct:free",
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const comment = gptResponse.data.choices[0].message.content;
+    req.body.comment = comment;
+
+    req.aiResult = {
+      ...aiResponse.data,
+      comment,
+    };
 
     next();
   } catch (err) {
-    console.error("AI ERROR:", err.response?.data || err.message);
     res.status(500).json({
       message: "Failed to process image",
       error: err.response?.data || err.message,
@@ -80,9 +151,9 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
   }
 });
 
-// =======================
-// Create a new report
-// =======================
+// ===================
+// Create Report
+// ===================
 exports.createReport = asyncHandler(async (req, res) => {
   req.body.user = req.user._id;
   const report = await reportModel.create(req.body);
@@ -92,7 +163,6 @@ exports.createReport = asyncHandler(async (req, res) => {
     aiResult: req.aiResult || null,
   });
 });
-
 // =======================
 // Get all reports for a specific user
 // =======================
