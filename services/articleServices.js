@@ -8,6 +8,14 @@ const cloudinary = require("../utils/cloudinary");
 const multer = require("multer");
 const path = require("path");
 
+const fs = require("fs");
+
+// قبل multer
+const uploadDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
 // =======================
 // Multer Config
 // =======================
