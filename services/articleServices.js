@@ -13,7 +13,12 @@ const fs = require("fs");
 // قبل multer
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
+ /* const tempDir = path.join("/tmp", "uploads");
+  if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir);
+}*/
+
+  //fs.mkdirSync(uploadDir);
 }
 
 // =======================
