@@ -110,6 +110,26 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
     );
 
     const { label, confidence } = aiResponse.data;
+
+    // ✅ شرط لو كل القيم أقل من 0.5
+    const isNormal =
+      Array.isArray(raw_output) && raw_output.every((val) => val < 0.5);
+ 
+    if (isNormal) {
+      req.body.typeDetected = "normal";
+      req.body.confidence = 1;
+      req.body.comment =
+        "The skin appears healthy and normal. No immediate concern detected.";
+      req.aiResult = {
+        label: "normal",
+        confidence: 1,
+        raw_output,
+        comment: req.body.comment,
+      };
+      return next();
+    }
+ 
+    // ✅ غير طبيعي: كمل التنبؤ والتعليق
     req.body.typeDetected = label;
     req.body.confidence = confidence;
 
@@ -193,3 +213,7 @@ exports.deleteReport = asyncHandler(async (req, res) => {
   if (!report) return res.status(404).json({ error: "Report not found" });
   res.status(200).json({ message: "Report deleted" });
 });
+
+
+
+
