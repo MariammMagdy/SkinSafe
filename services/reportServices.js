@@ -114,7 +114,7 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
     req.body.confidence = confidence;
 
     // 🔁 استدعاء OpenRouter
-    const prompt = `You are a dermatologist assistant. Based on the diagnosis "${label}" with a confidence of ${confidence}, provide a single, concise but informative sentence (around 2 lines) in English giving advice to the patient. Avoid repetition and don't mention confidence again.`;
+    /*const prompt = `You are a dermatologist assistant. Based on the diagnosis "${label}" with a confidence of ${confidence}, provide a single, concise but informative sentence (around 2 lines) in English giving advice to the patient. Avoid repetition and don't mention confidence again.`;
     const gptResponse = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
@@ -135,11 +135,11 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
     );
 
     const comment = gptResponse.data.choices[0].message.content;
-    req.body.comment = comment;
+    req.body.comment = comment;*/
 
     req.aiResult = {
       ...aiResponse.data,
-      comment,
+      //comment,
     };
 
     next();
