@@ -168,7 +168,7 @@ exports.createReport = asyncHandler(async (req, res) => {
 // =======================
 
 exports.getAllReports = asyncHandler(async (req, res) => {
-  const reports = await reportModel.find({ user: req.params.id }).select (user);
+  const reports = await reportModel.find({ user: req.params.id });
   res.status(200).json(reports);
 });
 // =======================
