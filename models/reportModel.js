@@ -5,10 +5,10 @@ const reportSchema = new mongoose.Schema(
         typeDetected: {
             type: String,
         },
-        comment: {
-            type: String,
+        //comment: {
+            //type: String,
             //required: true,
-        },
+        //},
         //slug: {
             //type: String,
             //lowercase: true,
