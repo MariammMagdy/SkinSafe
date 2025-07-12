@@ -114,7 +114,7 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
     // ✅ شرط لو كل القيم أقل من 0.5
     const isNormal =
       Array.isArray(raw_output) && raw_output.every((val) => val < 0.5);
- 
+
     if (isNormal) {
       req.body.typeDetected = "normal";
       req.body.confidence = 1;
@@ -128,7 +128,7 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
       };
       return next();
     }
- 
+
     // ✅ غير طبيعي: كمل التنبؤ والتعليق
     req.body.typeDetected = label;
     req.body.confidence = confidence;
