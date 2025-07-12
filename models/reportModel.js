@@ -5,7 +5,7 @@ const reportSchema = new mongoose.Schema(
         typeDetected: {
             type: String,
         },
-        comments: {
+        comment: {
             type: String,
             //required: true,
         },
